@@ -1,0 +1,281 @@
+body {
+    color: #1a1a1d;
+    background-color: #d2c1b5;
+}
+
+.link-dark {
+  color:#513626;
+}
+.link-dark:hover {
+  color:#6a260c;
+}
+.link-dark:link {
+  color:#864d2b;
+}
+
+.bg-light {
+    background-color: #614b3e!important;
+}
+.navbar-light .navbar-brand:hover {
+	color: #ffffff;
+}
+.navbar-light .navbar-brand, .navbar-light .navbar-nav .active>.nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .show>.nav-link {
+    color: #ffffff;
+}
+.navbar-light .navbar-nav .nav-link {
+    color: #cfcbc8;
+}
+.navbar-light .navbar-nav .nav-link:hover {
+    color: #ffffff;
+}
+
+.btn-secondary {
+    background-color: #d28e5f;
+    border-color: #d28e5f;
+}
+.btn-secondary:hover {
+  background-color: #aa734d;
+  border-color: #996744;
+}
+.btn-secondary:focus, .btn-secondary.focus {
+  background-color: #aa734d;
+  border-color: #996744;
+  box-shadow: 0 0 0 0.2rem #bf8b6880;
+}
+.btn-secondary.disabled, .btn-secondary:disabled {
+  background-color: #d28e5f;
+  border-color: #d28e5f;
+}
+.btn-secondary:not(:disabled):not(.disabled):active, .btn-secondary:not(:disabled):not(.disabled).active,
+.show > .btn-secondary.dropdown-toggle {
+  background-color: #996744;
+  border-color: #865a3b;
+}
+.btn-secondary:not(:disabled):not(.disabled):active:focus, .btn-secondary:not(:disabled):not(.disabled).active:focus,
+.show > .btn-secondary.dropdown-toggle:focus {
+  box-shadow: 0 0 0 0.2rem #bf8b6880;
+}
+.btn-secondary:not(:disabled):not(.disabled).active, .btn-secondary:not(:disabled):not(.disabled):active, .show>.btn-secondary.dropdown-toggle {
+    background-color: #95613e;
+    border-color: #714527;
+}
+
+
+.btn-primary {
+    color: #fff;
+    background-color: #d28e5f;
+    border-color: #d28e5f;
+}
+.btn-primary:hover {
+  color: #fff;
+  background-color: #aa734d;
+  border-color: #996744;
+}
+.btn-primary:focus, .btn-primary.focus {
+  color: #fff;
+  background-color: #aa734d;
+  border-color: #996744;
+  box-shadow: 0 0 0 0.2rem #bf8b6880;
+}
+.btn-primary.disabled, .btn-primary:disabled {
+  color: #fff;
+  background-color: #d28e5f;
+  border-color: #d28e5f;
+}
+
+.btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active,
+.show > .btn-primary.dropdown-toggle {
+  color: #fff;
+  background-color: #996744;
+  border-color: #865a3b;
+}
+
+.btn-primary:not(:disabled):not(.disabled):active:focus, .btn-primary:not(:disabled):not(.disabled).active:focus,
+.show > .btn-primary.dropdown-toggle:focus {
+  box-shadow: 0 0 0 0.2rem #bf8b6880;
+}
+.btn-primary:not(:disabled):not(.disabled).active, .btn-primary:not(:disabled):not(.disabled):active, .show>.btn-primary.dropdown-toggle {
+    color: #fff;
+    background-color: #95613e;
+    border-color: #714527;
+}
+
+.inp-number {
+    border-radius: 5px;
+    text-align: center;
+    border-width: 1px;
+    font: 400 13.3333px Arial;
+
+}
+.number-3 {
+    width: 2.2em;
+}
+input.hid-scroll::-webkit-outer-spin-button,
+input.hid-scroll::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    /*-moz-appearance:textfield;*/
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+.hid-scroll {
+    -moz-appearance:textfield;
+}
+.hidden {
+    display: none;
+}
+
+/* pathfind */
+
+.pathfind-table {
+  user-select: none; 
+  -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+.clear {
+    padding: 0;
+    border-radius: 5px;
+    background-color: #ca5511;
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 14pt;
+    font-weight: 700;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  font-family: Verdana;
+}
+.game-cell {
+  margin-bottom: 0;
+    height: 30px;
+    width: 20px;
+    position: relative;
+    background-color: #b89e8d;
+    display: inline-block;
+    -webkit-transition: background-color 0.15s ease-out 0s;
+    -moz-transition: background-color 0.15s ease-out 0s;
+    -o-transition: background-color 0.15s ease-out 0s;
+    transition: background-color 0.15s ease-out 0s;
+}
+.pathfind-table input:checked + .game-cell {
+    background-color: #805a44;
+}
+.pathfind-table {
+    font-size: inherit;
+    border-spacing: 1px;
+    padding: 0;
+    margin: 0;
+  border-collapse: separate;
+}
+.pathfind-table td {
+    padding: 0;
+}
+.search {
+    display: inline-block;
+    vertical-align: top;
+}
+.center {
+  text-align: center;
+}
+#search_res {
+    text-align: center;
+}
+#search_res .search {
+  padding: .3em .6em;
+}
+.path td {
+    height: 30px;
+    width: 20px;
+}
+.unlit {
+    background-color: #c3afa2;
+}
+.lit {
+    background-color: #937666;
+}
+.dawey {background-color: #d95425;}
+.loc_num {
+    z-index: -1;
+    position: absolute;
+    left: -7777px;
+    top: calc(30px);
+    background-color: #fffaf7;
+    height: 1.3em;
+    width: 3.5em;
+    border-radius: 1em;
+    border-top-left-radius: 0;
+    text-align: center;
+    opacity: 0;
+    -webkit-transition: opacity 0.15s ease-in-out 0s;
+    -moz-transition: opacity 0.15s ease-in-out 0s;
+    -o-transition: opacity 0.15s ease-in-out 0s;
+    transition: opacity 0.15s ease-in-out 0s;
+}
+.lit:hover {
+  position: relative;
+}
+.lit:hover .loc_num {
+  left: calc(20px - .2em);
+  z-index: 1;
+  opacity: 1;
+}
+.accordion-button:not(.collapsed) {
+    color: #614b3e;
+    background-color: #ffffff;
+}
+.accordion-button:not(.collapsed)::after {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23614b3e'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+.accordion-button.collapsed {
+    color: #000;
+    background-color: #e8dbd2;
+}
+
+.accordion-button:focus {
+  border-color: #ccaf8e;
+  box-shadow: 0 0 0 0.25rem #bf8b6880;
+}
+
+.btn-check:active+.btn-secondary, .btn-check:checked+.btn-secondary, .btn-secondary.active, .btn-secondary:active, .show>.btn-secondary.dropdown-toggle {
+    background-color: #95613e;
+    border-color: #714527;
+}
+.btn-check:checked + .btn-secondary:focus, .btn-check:active + .btn-secondary:focus, .btn-secondary:active:focus, .btn-secondary.active:focus, .show > .btn-secondary.dropdown-toggle:focus {
+  box-shadow: 0 0 0 0.25rem #bf8b6880;
+}
+.btn-check:focus + .btn-secondary, .btn-secondary:focus {
+  color: #fff;
+  background-color: #aa734d;
+  border-color: #996744;
+  box-shadow: 0 0 0 0.25rem #bf8b6880;
+}
+.card {
+  background-color:#f6e9e0;
+}
+.form-select:focus {
+  border-color: #996744;
+  box-shadow: 0 0 0 0.25rem #bf8b6880;
+}
+.form-control:focus {
+  border-color: #996744;
+  box-shadow: 0 0 0 0.25rem #bf8b6880;
+}
+.form-select:-moz-focusring {
+  text-shadow: 0 0 0 #292421;
+}
+.swimaway-control {
+  width: 4em;
+}
+input.hide-scroll::-webkit-outer-spin-button,
+input.hide-scroll::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    /*-moz-appearance:textfield;*/
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+.hide-scroll {
+    -moz-appearance:textfield;
+}
