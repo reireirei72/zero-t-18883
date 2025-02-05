@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Создание карт</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+        <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
+        <style type="text/css">
+            table {
+              caption-side: bottom;
+            }
+            caption {
+                white-space: break-spaces;
+            }
+            #panel > div {
+                margin-bottom: .5em;
+            }
+            #lines {
+                position: absolute;
+                top: 0;
+                left: 0;
+                pointer-events: none;
+                z-index: 100;
+            }
+            .location, .location td, .location th {
+                border: 1px solid #b35a0bba;
+            }
+            .location {
+                width: max-content;
+                border-collapse: collapse;
+            }
+            .location td {
+                height: 1em;
+                width: .75em;
+            }
+            .location thead {
+                background-color: #ffdaa4;
+            }
+            .location-name {
+                width: 10.5em;
+            }
+            .location-handle {
+                background-color: #ffa92a;
+            }
+            .location-name-th {
+                padding: 0 .25em;
+                text-align: left;
+            }
+            .location-delete {
+                background-color: #e25454;
+                color: white;
+            }
+            #wrapper {
+                white-space: nowrap;
+            }
+            #results_wrapper {
+                border: 1px solid #0000006e;
+                background-color: #ddd;
+                width: 12em;
+                max-height: 50em;
+                overflow-y: auto;
+                display: inline-block;
+                vertical-align: top;
+            }
+            #map {
+                min-width: 50em;
+                min-height: 50em;
+                position: relative;
+                display: inline-block;
+            }
+            #panel {
+                margin-bottom: .75em;
+            }
+            #status {
+                display: inline-block;
+            }
+            .location > tbody {
+                background-color: #fff4da;
+            }
+            .location-with-bg > tbody {
+                /*background-size: cover;*/
+                background-size: 150px 115px;
+                background-position: center;
+            }
+            .location .cell:hover:not(.cell-self, .cell-twoside, .cell-oneside), .location .cell-selected {
+                background-color: #ffdfab;
+            }
+            .location .cell-self {
+                background-color: #106ed9;
+            }
+            .location .cell-oneside {
+                background-color: #ae1404;
+            }
+            .location .cell-twoside {
+                background-color: #e47f35;
+            }
+            #results_header, .move-wrapper {
+                padding: .15em .25em;
+            }
+            .move-wrapper {
+                display: flex;
+                justify-content: space-between;
+            }
+            .move-delete {
+                width: 1em;
+                background-color: #e25454;
+                color: white;
+                cursor: pointer;
+                text-align: center;
+                font-weight: bold;
+                border-radius: .25em;
+                user-select: none;
+            }
+            .move {
+                width: max-content;
+            }
+            #input {
+                padding: 0 .25em;
+            }
+            #input_submit {
+                background-color: #5bce07;
+                color: white;
+                border: transparent;
+                border-radius: .25em;
+            }
+        </style>
+    </head>
+    <body> 
+        <div id="panel">
+            <div>
+                Тянуть за левый верхний угол, смена айди локации - двойное нажатие по полю заголовка с ним, односторонний переход - закончить создание кликом на заголовок, сам в себя - то же самое, но на себя.
+            </div>
+            <div>
+                Название локации меняется через смену ID, формат должен быть "ID локации %название%", напр. "73000 %Камышовые заросли%".
+            </div>
+            <div>
+                Окошко для импорта: <input type="text" id="import_input"> <button id="import">Импортировать</button>
+            </div>
+            <div>
+                Текущая карта: <input type="text" id="export_input" style="width: 500px"> <button style="transition: background-color .25s, color .25s;" id="copy">Копировать</button> <button id="reset" style="color: #fff;background-color: #d93535;">Сбросить</button>
+            </div>
+            <div>
+                ID: 
+                <input id="location_id" type="text" placeholder="ID" value="1">
+                <button id="location_add">Добавить локацию</button>
+                <button id="download">Сохранить карту как PNG</button>
+<!--                 <button id="move_left">←</button>
+                <button id="move_up">↑</button>
+                <button id="move_right">→</button>
+                <button id="move_down">↓</button> -->
+                <div id="status"></div>
+            </div>
+        </div>
+        <div id="wrapper">
+            <div id="results_wrapper"><div id="results_header"><b>Результаты:</b></div><div id="results"></div></div>
+            <div id="map">
+                <svg width="1000" height="1000" id="lines"></svg>
+            </div>
+        </div>
+    </body>
+    <script type="text/javascript">
+        var cpy_tm;
+        var def_export_obj = {
+            locations: {},
+            moves: []
+        };
+        const old = window.localStorage.getItem('mapping_export_save');
+        var export_obj = old ? JSON.parse(old) : def_export_obj;
+        var $export_inp = $('#export_input');
+        $export_inp.val(JSON.stringify(export_obj));
+        
+        function reset() {
+            results = [];
+            export_obj = {
+                locations: {},
+                moves: []
+            };
+            window.localStorage.removeItem('mapping_export_save');
+            $('.location, .move-wrapper, #lines > line').remove();
+        }
+        function revertCopyBtn() {
+            clearTimeout(cpy_tm);
+            $('#copy').css('background-color','-internal-light-dark(rgb(239, 239, 239), rgb(59, 59, 59))').css('color','-internal-light-dark(rgb(0, 0, 0), rgb(255, 255, 255))');
+        }
+        function refreshExport() {
+            $export_inp.val(JSON.stringify(export_obj));
+            window.localStorage.setItem('mapping_export_save', JSON.stringify(export_obj));
+        }
+        
+        function setOnesideOffset(from_offset /*Локация, в которой переход*/, to_offset /*Куда ведет односторонний переход*/) {
+            let new_offset = {left: to_offset.left, top: to_offset.top};
+            if (from_offset.top + loc_height > to_offset.top) { // нижняя часть локи из > верхняя часть локи в
+                new_offset.top += loc_height/2;
+                if (from_offset.top > to_offset.top + loc_height) { // верхняя часть локи из > нижняя часть локи в
+                    new_offset.top += loc_height/2;
+                }
+            }
+            if (from_offset.left + loc_width > to_offset.left) { // правая часть локи из > левая часть локи в
+                new_offset.left += loc_width/2;
+                if (from_offset.left > to_offset.left + loc_width) { // левая часть локи из > правая часть локи в
+                    new_offset.left += loc_width/2;
+                }
+            }
+            if (Math.abs(from_offset.top - to_offset.top) <= loc_height && Math.abs(from_offset.left - to_offset.left) <= loc_width) {
+                new_offset.left += (from_offset.left > to_offset.left) ? loc_width/2 : -loc_width/2;
+                new_offset.top += (from_offset.top > to_offset.top) ? loc_height/2 : -loc_height/2;
+            }
+            return new_offset;
+        }
+        function drawLine(x1, y1, x2, y2, from, data_x1, data_y1, to, data_x2, data_y2) {
+            let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('stroke', stroke_color);
+            line.setAttribute('stroke-width', 1);
+            line.dataset.from = from;
+            line.dataset.x1 = data_x1;
+            line.dataset.y1 = data_y1;
+            line.dataset.to = to;
+            if (data_x2 !== undefined && data_y2 !== undefined) {
+                line.dataset.x2 = data_x2;
+                line.dataset.y2 = data_y2;
+            }
+            $('#lines').append(line);
+        }
+        function addResults(id, x, y, to_id, to_x, to_y) {
+            pushResults(id, x, y, to_id);
+            if (to_x && to_y) {
+                pushResults(to_id, to_x, to_y, id, true);
+            }
+            export_obj.moves.push({from: +id, x: +x, y: +y, to: +to_id, to_x: +to_x, to_y: +to_y});
+            refreshExport();
+            sortResults();
+            id = x = y = undefined;
+            $('#status').html('');
+        }
+        function sortResults() {
+            results = _.sortBy(results, ['string']);
+            let $wrapper = $('#results');
+            $wrapper.find('.move-wrapper').sort(function(a, b) {
+                return (a.dataset.from - b.dataset.from) * 100 + (a.dataset.x - b.dataset.x) * 10 + (a.dataset.y - b.dataset.y);
+            }).appendTo($wrapper);
+        }
+        function pushResults(id, x, y, to_id, fake = false) {
+            results.push({ string: `${id}-${x}x${y} => ${to_id}`, from: +id, x: +x, y: +y, to: +to_id, fake: fake });
+            $('#results').append(`<div class="move-wrapper" data-from="${id}" data-x="${x}" data-y="${y}" data-to="${to_id}" data-string="${id}-${x}x${y} => ${to_id}"><div class="move">${id}-${x}x${y} => ${to_id}</div><div class="move-delete${fake ? " is-fake":""}">&times;</div></div>`);
+        }
+        function loadMap(object) {
+            for (const loc_id in object.locations) {
+                addLocation(loc_id, object.locations[loc_id].top, object.locations[loc_id].left, object.locations[loc_id].name, object.locations[loc_id].bg);
+                if ($max_left === undefined || $max_left.position().left < object.locations[loc_id].left) {
+                    $max_left = $('.location[data-id='+loc_id+']');
+                }
+                if ($max_top === undefined || $max_top.position().top < object.locations[loc_id].top) {
+                    $max_top = $('.location[data-id='+loc_id+']');
+                }
+                let $map = $('#map'), $lines = $('#lines'),
+                    width = $max_left.offset().left - $map.offset().left + loc_width,
+                    height = $max_top.offset().top - $map.offset().top + loc_height;
+                if (width > 0 && height > 0) {
+                    $map.css('width', width + 200).css('height', height + 200);
+                    $lines.attr('width', width).attr('height', height);
+                }
+            }
+            // $max_top
+            for (const move of object.moves) {
+                var $loc_cell = $('.location[data-id='+move.from+'] tbody').children().eq(move.y - 1).children().eq(move.x - 1);
+                $loc_cell.click();
+                if (move.to_x && move.to_y) { // двухсторонний
+                    $('.location[data-id='+move.to+'] tbody').children().eq(move.to_y - 1).children().eq(move.to_x - 1).click();
+                } else if (move.from == move.to) {
+                    $('.location[data-id='+move.from+'] thead')[0].click();
+                } else {
+                    $('.location[data-id='+move.to+'] thead')[0].click();
+                }
+            }
+        }
+        function addLocation(loc, top = 0, left = 0, name = loc, bg = -1) {
+            const bgClass = (bg === -1) ? "" : "location-with-bg";
+            const bgStyle = (bg === -1) ? "" : `style="background-image: url('https://catwar.su/cw3/spacoj/${bg}.jpg')"`;
+            let elem = `<table class="location ${bgClass} ui-draggable" data-id="${loc}" style="position:absolute;top:${top}px;left:${left}px;"><caption>${name}</caption><thead><th colspan=2 class="location-handle"></th><th colspan="7" class="location-name-th">${loc}</th><th class="location-delete">&times;</th></thead><tbody ${bgStyle}>`;
+                for (let i = 0; i < 6; i++) {
+                    let row = '<tr>';
+                    for (let j = 0; j < 10; j++) {
+                        row += '<td class="cell"></td>';
+                    }
+                    row += '</tr>';
+                    elem += row;
+                }
+                elem += `</tbody></table>`;
+                let $elem = $('#map').append(elem);
+                export_obj.locations[loc] = {top: top, left: left, name: name + '', bg: bg};
+                refreshExport();
+                $('.location[data-id='+loc+']').draggable(draggable_options);
+        }
+
+        var id, x, y, stroke_color = '#e47f35', results = []
+            , loc_height = 136, loc_width = 151 // высота и ширина окошка с локацией
+            , cell_height = 20, cell_width = 15 // высота и ширина ячейки в локации
+            , $max_left = undefined, $max_top = undefined, max_left_offset = 0, max_top_offset = 0; // самые дальние локации
+        var draggable_options = {
+            handle: '.location-handle',
+            containment: [$('#map').offset().left, $('#map').offset().top],
+            start: function(event, ui) {
+                $(this).css('z-index', '99');
+            },
+            stop: function( event, ui ) {
+                $(this).css('z-index', '');
+                let id = $(this).attr('data-id'),
+                    pos = $(this).position();
+                export_obj.locations[id].top = pos.top;
+                export_obj.locations[id].left = pos.left;
+                refreshExport();
+            },
+            drag: function(event, ui) {
+                let id = $(this).closest('.location').attr('data-id'),
+                    $lines = $('#lines'),
+                    $map = $('#map'),
+                    $loc = $(this);
+                // Перерисовка линий
+                $('#lines line[data-from='+id+'], #lines line[data-to='+id+']').each(function() {
+                    let linestart_id = $(this).attr('data-from'),
+                        lineend_id = $(this).attr('data-to'),
+                        base_offset = $('#lines').offset(),
+                        index = (linestart_id == id) ? 1 : 2,
+                        x = $(this).attr('data-x'+index), // x клетки локации, которую перемещаем
+                        y = $(this).attr('data-y'+index); // y клетки локации, которую перемещаем
+                    if (x !== undefined) { // двухсторонний
+                        let offset = $loc.closest('.location').find('tbody').children().eq(y - 1).children().eq(x - 1).offset();
+                        $(this).attr('x'+index, offset.left - base_offset.left + cell_width/2);
+                        $(this).attr('y'+index, offset.top - base_offset.top + cell_height/2);
+                        index = (linestart_id == id) ? 2 : 1;
+                        let to_x = $(this).attr('data-x'+index); // x клетки локации, к которой присоединена перемещаемая
+                        if (to_x === undefined) {
+                            let from_offset = $('.location[data-id='+lineend_id+']').offset(),
+                                to_offset = $loc.closest('.location').offset();
+                            from_offset = setOnesideOffset(to_offset, from_offset);
+                            $(this).attr('x'+index, from_offset.left - base_offset.left);
+                            $(this).attr('y'+index, from_offset.top - base_offset.top);
+                        }
+                    } else { // односторонний
+                        let from_offset = $('.location[data-id='+linestart_id+']').offset(),
+                            to_offset = $loc.closest('.location').offset();
+                        to_offset = setOnesideOffset(from_offset, to_offset);
+                        $(this).attr('x'+index, to_offset.left - base_offset.left);
+                        $(this).attr('y'+index, to_offset.top - base_offset.top);
+                    }
+                });
+
+                // Поправка на размер блока
+                if ($max_left == undefined) {
+                    $max_left = $(this);
+                    $max_top = $(this);
+                    max_left_offset = $(this).offset().left;
+                    max_top_offset = $(this).offset().top;
+                } else {
+                    if ($max_left.offset().left < $(this).offset().left) {
+                        $max_left = $(this);
+                        max_left_offset = $(this).offset().left;
+                    } else if ($(this).data('id') == $max_left.data('id') && max_left_offset > $(this).offset().left) {
+                        let $new_max_left = $(this);
+                        $('.location').each(function(index) {
+                            if ($(this).offset().left > $new_max_left.offset().left) $new_max_left = $(this);
+                        });
+                        $max_left = $new_max_left;
+                        max_left_offset = $new_max_left.offset().left;
+                    }
+                    if ($max_top.offset().top < $(this).offset().top) {
+                        $max_top = $(this);
+                        max_top_offset = $(this).offset().top;
+                    } else if ($(this).data('id') == $max_top.data('id') && max_top_offset > $(this).offset().top) {
+                        let $new_max_top = $(this);
+                        $('.location').each(function(index) {
+                            if ($(this).offset().top > $new_max_top.offset().top) $new_max_top = $(this);
+                        });
+                        $max_top = $new_max_top;
+                        max_top_offset = $new_max_top.offset().top;
+                    }
+                }
+                let width = $max_left.offset().left - $map.offset().left + loc_width,
+                    height = $max_top.offset().top - $map.offset().top + loc_height;
+                $map.css('width', width + 200).css('height', height + 200);
+                $lines.attr('width', width).attr('height', height);
+            }
+        };
+        $('#copy').click(function() {
+            var copyText = document.getElementById("export_input");
+              copyText.select();
+              document.execCommand("copy");
+            $(this).css('background-color', 'rgb(55 193 30)').css('color', 'rgb(255 255 255)');
+            cpy_tm = setTimeout(function() { revertCopyBtn() }, 4000);
+        });
+        $('#reset').click(function() {
+            if (confirm("Сбросить всю карту? Ничего не сохранится.")) {
+                reset();
+            }
+        });
+        $('#import').click(function() {
+            if (confirm("Импортировать новую карту? Прошлая не сохранится.")) {
+                reset();
+                loadMap(JSON.parse($('#import_input').val()));
+            }
+        });
+
+        $('body').on('dblclick', '.location-name-th', function() {
+            if ($('#input').length) {
+                if ($(this).find('#input').length) return;
+                alert('Название какой-то локации уже меняется.');
+                return;
+            }
+            let id = $(this).text();
+            let name = $(this).closest('table').find('caption').text();
+            $(this).html(`<input type="text" id="input" size=7 value=${id} data-old-value=${id}><button id="input_submit">✓</button>`);
+            $('#input').val(`${id} %${name}%`).attr('data-old-value',`${id} %${name}%`);
+        });
+
+        $('body').on('click', '#input_submit', function(e) {
+            const re = /(\d+) %([^%]+)%/i;
+            let $input = $('#input'),
+                val = $input.val(),
+                match = val.match(re), 
+                id = +(match[1]),
+                name = match[2],
+                old_val = $input.attr('data-old-value'),
+                old_match = old_val.match(re),
+                old_id = +(old_match[1]),
+                old_name = old_match[2];
+            if (match === null || isNaN(id) || ($('.location[data-id='+id+']').length && id != old_id)) {
+                alert('Некорректный формат (должен быть "ID %название%") или локация с таким ID уже существует на карте');
+                id = old_id;
+            } else if (id != old_id || name != old_name) {
+                if (id != old_id) {
+                    $('line[data-from='+old_id+']').attr('data-from', id);
+                    $('line[data-to='+old_id+']').attr('data-to', id);
+                    $(this).closest('.location').attr('data-id', id);
+                    let $move_wrapper = $('.move-wrapper[data-from='+old_id+']')
+                    , x = $move_wrapper.attr('data-x')
+                    , y = $move_wrapper.attr('data-y')
+                    , to = $move_wrapper.attr('data-to');
+                    let text = $move_wrapper.find('.move').text();
+                    $('.move-wrapper[data-from='+old_id+'] > .move').each(function() {
+                        $(this).text($(this).text().replace(/\d+-/ig, id+'-'));
+                    });
+                    $('.move-wrapper[data-from='+old_id+']').attr('data-from', id);
+                    $('.move-wrapper[data-to='+old_id+'] > .move').each(function() {
+                        $(this).text($(this).text().replace(/=> \d+/ig, '=> '+id));
+                    });
+                    $('.move-wrapper[data-to='+old_id+']').attr('data-to', id);
+                    _.forEach(results, function(result) {
+                        if (result.from == old_id) {
+                            result.string = result.string.replace(/\d+-/ig, id+'-');
+                            result.from = id;
+                        }
+                        if (result.to == old_id) {
+                            result.string = result.string.replace(/=> \d+/ig, '=> '+id);
+                            result.to = id;
+                        }
+                    });
+                    _.forEach(export_obj.moves, function(result) {
+                        if (result.from == old_id) {
+                            result.from = id;
+                        }
+                        if (result.to == old_id) {
+                            result.to = id;
+                        }
+                    });
+                    sortResults();
+                    let old = export_obj.locations[old_id];
+                    export_obj.locations[id] = {top: old.top, left: old.left, name: name};
+                    delete export_obj.locations[old_id];
+                } else {
+                    export_obj.locations[id].name = name;
+                }
+                refreshExport();
+            }
+            $(this).closest('table').find('caption').text(name);
+            $(this).closest('.location-name-th').text(id);
+        });
+        $('#location_add').click(function() {
+            let id_val = $('#location_id').val(),
+                id = parseInt(id_val);
+            if (/\D/g.test(id_val) ||isNaN(id) || $('.location[data-id='+id+']').length) {
+                alert('Некорректный ID или локация с таким ID уже существует на карте');
+            } else {
+                addLocation(id);
+                $('#location_id').val(++id);
+            }
+        });
+
+        $('body').on('click', '.location .cell:not(.cell-oneside, .cell-twoside, .cell-selected, .cell-self), .location thead', function() {
+            let $connect = $('.cell-selected'),
+                base_offset = $('#lines').offset(),
+                isCell = $(this).hasClass('cell');
+            $('#location_add').prop('disabled', !$connect.length);
+            if ($connect.length) { // соединить локации
+                let to_id = $(this).closest('.location').attr('data-id');
+                if (isCell) { // присоединяем к ячейке (двухсторонний)
+                    if (to_id != id) { // не сам в себя
+                        let to_x = $(this).index() + 1,
+                            to_y = $(this).parent().index() + 1;
+                        addResults(id, x, y, to_id, to_x, to_y);
+                        $connect.removeClass('cell-selected').addClass('cell-twoside').attr('data-to', to_id);
+                        $(this).addClass('cell-twoside').attr('data-to', id);
+                        let from_offset = $connect.offset(),
+                            to_offset = $(this).offset();
+                        drawLine(from_offset.left - base_offset.left + cell_width/2, from_offset.top - base_offset.top + cell_height/2, 
+                            to_offset.left - base_offset.left + cell_width/2, to_offset.top - base_offset.top + cell_height/2, 
+                            id, x, y, to_id, to_x, to_y);
+                    }
+                    // если сам в себя, то нажимайте на заголовок, лалки что ли
+                } else { // присоединяем к локации (свс или односторонний)
+                    $connect.removeClass('cell-selected').addClass((to_id == id) ? 'cell-self' : 'cell-oneside').attr('data-to', to_id);
+                    if (to_id != id) {
+                        let from_offset = $connect.offset(),
+                        from_loc_offset = $connect.closest('.location').offset()
+                        to_offset = $(this).closest('.location').offset();
+                        to_offset = setOnesideOffset(from_loc_offset, to_offset);
+                        drawLine(from_offset.left - base_offset.left + cell_width/2, from_offset.top - base_offset.top + cell_height/2, 
+                            to_offset.left - base_offset.left, to_offset.top - base_offset.top, 
+                            id, x, y, to_id);
+                    }
+                    addResults(id, x, y, to_id);
+                }
+            } else { // нажимается клетка, откуда будет переход
+                if (isCell && !$(this).is('.cell-self, .cell-oneside, .cell-twoside')) { // нажимаем не на заголовок при пустой выборке и не на уже существующий переход
+                    $(this).addClass('cell-selected');
+                    id = $(this).closest('.location').attr('data-id');
+                    x = $(this).index() + 1;
+                    y = $(this).parent().index() + 1;
+                    $('#status').html(`Добавляем переход из ID = ${id}-${x}x${y}... <a href='#' id='abort'>Отменить?</a>`);
+                } else {
+                    $('#location_add').prop('disabled', false);
+                }
+            }
+        });
+
+        $('body').on('click', '#abort', function() {
+            $('.cell-selected').removeClass('cell-selected');
+            $('#location_add').prop('disabled', false);
+            $('#status').html('');
+        });
+
+        $('body').on('click', '.location-delete', function() {
+            if (confirm('Удалить локацию?')) {
+                let id = $(this).closest('.location').attr('data-id');
+                $(this).closest('.location').remove();
+                _.remove(results, function(o) { return o.from == +id || o.to == +id});
+                _.remove(export_obj.moves, function(o) { return o.from == +id || o.to == +id});
+                $('.move-wrapper[data-from='+id+'], .move-wrapper[data-to='+id+'], line[data-from='+id+'], line[data-to='+id+']').remove();
+                $('.cell[data-to='+id+']').removeClass().addClass('cell');
+                delete export_obj.locations[id];
+                refreshExport();
+            }
+        });
+
+        $('body').on('click', '.move-delete', function() {
+            let $move = $(this).closest('.move-wrapper'),
+                from = $move.attr('data-from'),
+                to = $move.attr('data-to'),
+                x = $move.attr('data-x'),
+                y = $move.attr('data-y'),
+                $loc = $('.location[data-id='+from+']'),
+                $cell = $loc.find('tbody').children().eq(y - 1).children().eq(x - 1);
+            if ($cell.hasClass('cell-oneside')) { // односторонний
+                $cell.removeClass('cell-oneside');
+                $('line[data-from='+from+'][data-x1='+x+'][data-y1='+y+']').remove();
+            } else if ($cell.hasClass('cell-self')) { // свс
+                $cell.removeClass('cell-self');
+            } else { // двухсторонний
+                $cell.removeClass('cell-twoside');
+                let $line, to_x, to_y, $to_cell;
+                if ($(this).hasClass('is-fake')) { // переход был автоматически окрашен и вставлен
+                    $line = $('line[data-from='+to+'][data-x2='+x+'][data-y2='+y+'][data-to='+from+']'),
+                    to_x = $line.attr('data-x1'),
+                    to_y = $line.attr('data-y1');
+                } else { // переход был окрашен вручную
+                    $line = $('line[data-from='+from+'][data-x1='+x+'][data-y1='+y+'][data-to='+to+']'),
+                    to_x = $line.attr('data-x2'),
+                    to_y = $line.attr('data-y2');
+                }
+                $('.location[data-id='+to+']').find('tbody').children().eq(to_y - 1).children().eq(to_x - 1).removeClass('cell-twoside');
+                $line.remove();
+                _.remove(results, {from: +to, to: +from, x: +to_x, y: +to_y});
+                _.remove(export_obj.moves, {from: +to, to: +from, x: +to_x, y: +to_y});
+                    $('.move-wrapper[data-from='+to+'][data-x='+to_x+'][data-y='+to_y+']').remove();
+            }
+            _.remove(results, {from: +from, to: +to, 'x': +x, 'y': +y})
+            _.remove(export_obj.moves, {from: +from, to: +to, 'x': +x, 'y': +y})
+            refreshExport();
+            $move.remove();
+        });
+        $('#download').click(function() {
+            html2canvas(document.getElementById("map")).then(function (canvas) {
+                var dataURL = canvas.toDataURL("image/png", 1); // боже упаси stack overflow
+                var link = document.createElement("a");
+                link.download = "map.png";
+                link.href = dataURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                delete link;
+            });
+        });
+
+        if (old) {
+            loadMap(export_obj);
+        }
+    </script>
+</html>
