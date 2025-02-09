@@ -5,14 +5,14 @@
 // @author       ReiReiRei
 // @copyright    2020-2024, Тис (https://catwar.net/cat406811)
 // @license      MIT; https://opensource.org/licenses/MIT
-// @updateURL    https://abstract-class-shed.github.io/cwshed/CW_Shed.meta.js
+// @updateURL    https://reireirei72.github.io/zero-t-18883/shed/CW_Shed.meta.js
 // @match        *://catwar.net/*
 // @match        *://catwar.su/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
-// @require      https://abstract-class-shed.github.io/cwshed/jquery-3.4.1.min.js
+// @require      https://reireirei72.github.io/zero-t-18883/shed/jquery-3.4.1.min.js
 // @require      https://raw.githubusercontent.com/litera/jquery-scrollintoview/master/jquery.scrollintoview.min.js
-// @require      https://abstract-class-shed.github.io/cwshed/jquery-ui.js
+// @require      https://reireirei72.github.io/zero-t-18883/shed/jquery-ui.js
 // ==/UserScript==
 (function (window, document, $) {
   'use strict';
@@ -215,12 +215,12 @@
   }
   const sounds = {};
   sounds.new_message = '/new_message.mp3';
-  sounds.action_notif = 'https://abstract-class-shed.github.io/cwshed/action_end.mp3';
-  sounds.chat_mention = 'https://abstract-class-shed.github.io/cwshed/chat_mention.mp3';
+  sounds.action_notif = 'https://reireirei72.github.io/zero-t-18883/shed/action_end.mp3';
+  sounds.chat_mention = 'https://reireirei72.github.io/zero-t-18883/shed/chat_mention.mp3';
   sounds.alert_attacked = 'https://d.zaix.ru/ihrv.mp3';
-  sounds.tt_refresh = 'https://abstract-class-shed.github.io/cwshed/refresh.wav'; //изменить потом
-  sounds.block_start = 'https://abstract-class-shed.github.io/cwshed/lock.mp3';
-  sounds.block_end = 'https://abstract-class-shed.github.io/cwshed/unlock.mp3';
+  sounds.tt_refresh = 'https://reireirei72.github.io/zero-t-18883/shed/refresh.wav'; //изменить потом
+  sounds.block_start = 'https://reireirei72.github.io/zero-t-18883/shed/lock.mp3';
+  sounds.block_end = 'https://reireirei72.github.io/zero-t-18883/shed/unlock.mp3';
   const audioGlobal = new Audio();
   audioGlobal.autoplay = false;
   audioGlobal.loop = false;
@@ -825,7 +825,7 @@
     if (globals.on_idItemMouth) {
       let item_names_json = {};
       $(document).ready(function () {
-        $.getJSON("https://abstract-class-shed.github.io/cwshed/item_names.json?" + Date.now(), function (response) { //Подгрузка имен предметов из json файла
+        $.getJSON("https://reireirei72.github.io/zero-t-18883/shed/item_names.json?" + Date.now(), function (response) { //Подгрузка имен предметов из json файла
           item_names_json = response;
           $("#thdey > ul").append('<li>Название предмета: <span id=item_name_ide>[ Неизвестно ]</span> [<span id=item_id_ide>?</span>]</li>');
           $("body").on('click', "#itemList .itemInMouth", function () {
@@ -938,7 +938,7 @@
                   if (match) {
                       let time = match[0].trim();
                       action = which_action($("#block_mess").text() || "");
-                      if (time == '8 с' || time == '7 с' || time == '6 с') move_ok = true; //Действие длится хотя бы 8 секунд -С МОМЕНТА ОТКРЫТИЯ ИГРОВОЙ-
+                      if (time == '7 с' || time == '6 с') move_ok = true; //Действие длится хотя бы 7 секунд -С МОМЕНТА ОТКРЫТИЯ ИГРОВОЙ-
                       if (action.txt !== null) $('title').text(time + " / " + action.txt); //Сменить титульник, если текст на это действие включен
                       let datenow = new Date();
                       if (!action.snd) rang = true; //Реагировать только на нужные навыки ("звук был" = да)
@@ -985,7 +985,7 @@
                                 display:inline-block;
                                 height:16px;
                                 width:16px;
-                                background: url(https://abstract-class-shed.github.io/cwshed/untargeted.png) center no-repeat;
+                                background: url(https://reireirei72.github.io/zero-t-18883/shed/untargeted.png) center no-repeat;
                                 background-color: #ccc;
                                 margin-right:4px;
                                 border-radius: 5px;
@@ -995,7 +995,7 @@
                                 left: 3px;
                             }
                             #fightPanelHandle:active {
-                                background: url(https://abstract-class-shed.github.io/cwshed/targeted.png) center no-repeat;
+                                background: url(https://reireirei72.github.io/zero-t-18883/shed/targeted.png) center no-repeat;
                                 background-color: #ccc;
                             }</style>`);
         $("#fightPanel").prepend(`<a id="fightPanelHandle"></a>`);
@@ -1476,7 +1476,7 @@ height: 25px;
           tt_field_def, tt_field_def, tt_field_def, tt_field_def
         ] : JSON.parse(getSettings('tt_fields'));
         let mines_html = `<div id="cws_treeTechies"${globals.tt_folded?' class="folded"':''}>
-<div id="cws_treeTechiesHandleWrap"><div id="cws_treeTechiesHandle"><span>Минное поле</span></div><div id=cws_treeTechiesFold><img class="cws-tt-fold-minus${globals.tt_folded?' cws-tt-fold-hidden':''}" src="https://abstract-class-shed.github.io/cwshed/minus.png"><img class="cws-tt-fold-plus${globals.tt_folded?'':' cws-tt-fold-hidden'}" src="https://abstract-class-shed.github.io/cwshed/plus.png"></div></div>
+<div id="cws_treeTechiesHandleWrap"><div id="cws_treeTechiesHandle"><span>Минное поле</span></div><div id=cws_treeTechiesFold><img class="cws-tt-fold-minus${globals.tt_folded?' cws-tt-fold-hidden':''}" src="https://reireirei72.github.io/zero-t-18883/shed/minus.png"><img class="cws-tt-fold-plus${globals.tt_folded?'':' cws-tt-fold-hidden'}" src="https://reireirei72.github.io/zero-t-18883/shed/plus.png"></div></div>
 <div id="cws_tt_choose">
 <div>
   <input type="radio" checked name="cws_tt_cell" class="cws-tt-cell" id="cws_tt_cell0" value="0" mark="cws-tt-safe">
@@ -1960,7 +1960,7 @@ ${globals.on_treeTechies?`<div><input id="on_treeTechies" type="checkbox" checke
   }
 
   function profile() {
-    $.getJSON("https://abstract-class-shed.github.io/cwshed/river_achievements.json?" + Date.now(), function (data) {
+    $.getJSON("https://reireirei72.github.io/zero-t-18883/shed/river_achievements.json?" + Date.now(), function (data) {
       const achievements = data,
         elem = `<div id="cws_achievement" style="display: none; margin: 5px; padding: 5px; border-radius: 10px; width: 270px; background: rgba(255, 255, 255, 0.4); color: black;"></div>`,
         inner = `Ачивка <b>"{name}"</b>
