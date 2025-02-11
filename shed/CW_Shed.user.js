@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.47
+// @version      1.48
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2024, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.47';
+  const version = '1.48';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -678,17 +678,22 @@
       addCSS(`.other_cats_list {display: none;}.other_cats_list + br {display: none;}`);
     }
     if (globals.on_newDM) {
-      let newDM = 0;
-      $('body').on('DOMSubtreeModified', '#newls', function () { // deprecated, todo: remove/update
-        let newDMtmp = $(this).html();
-        if (newDMtmp !== undefined) {
-          newDMtmp = (newDMtmp === '') ? 0 : parseInt(newDMtmp.replace(/\D/gi, ''));
-          if (newDMtmp > newDM) {
-            playAudio(sounds.new_message, globals.sound_newDM);
-          }
-          newDM = newDMtmp;
-        }
-      });
+	let newDM = 0;
+	const dm_observer = new MutationObserver(function(mutations) {
+		mutations.forEach(function(mutationRecord) {
+			if (mutationRecord.type === "characterData") {
+				let newDMtmp = $("#newls").text();
+				if (newDMtmp !== undefined) {
+					newDMtmp = (newDMtmp === '') ? 0 : +(newDMtmp.replace(/\D/gi, ''));
+					if (newDMtmp > newDM) {
+						playAudio(sounds.new_message, globals.sound_newDM);
+					}
+					newDM = newDMtmp;
+				}
+			}
+		});
+	});
+	dm_observer.observe(document.getElementById('newls'), { subtree: true, characterData: true });
     }
     if (globals.on_newChat) {
       let newChat = 0;
