@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.49
+// @version      1.50
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2024, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.49';
+  const version = '1.50';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -1356,16 +1356,19 @@ input:checked + .cws-team {
     }
     if (globals.on_treeTechies) {
       if (globals.tt_notif_refresh) {
-        let last_note, note_first = true;
-        $("#history_block").on('DOMSubtreeModified', '#ist', function () {
-          last_note = $($("#ist").html().split('.')).get(-2); //Последняя запись в истории
-          if (last_note !== undefined) {
-            if (/Услышала? оглушительн/.test(last_note) && !note_first) {
-              playAudio(sounds.tt_refresh, globals.sound_ttRefresh);
-            }
-            note_first = false; //История была уже прочитана 1 раз, и страница не только что загрузилась
-          }
-        });
+          $("#ist").ready(function () {
+              let last_note, note_first = true;
+              const treeRefreshObserver = new MutationObserver(function(mutations) {
+                  last_note = $($("#ist").html().split('.')).get(-2); //Последняя запись в истории
+                  if (last_note !== undefined) {
+                      if (/Услышала? оглушительн/.test(last_note) && !note_first) {
+                          playAudio(sounds.tt_refresh, globals.sound_ttRefresh);
+                      }
+                      note_first = false; //История была уже прочитана 1 раз, и страница не только что загрузилась
+                  }
+              });
+              treeRefreshObserver.observe(document.getElementById('ist'), { characterData: false, childList: true, attributes: false });
+          });
       }
       $('#app').ready(function () {
         $('head').append(`<style>
