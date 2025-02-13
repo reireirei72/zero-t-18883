@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.48
+// @version      1.49
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2024, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.48';
+  const version = '1.49';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -1031,24 +1031,31 @@
       $(document).ready(function () {
         let prev_log = '';
         let prev_class = '';
-        $("#fightLog").on('DOMNodeInserted', 'span:not(.cws-hit-count)', function (e) {
-          let this_log = $(this).html();
-          let this_class = $(this).attr('class');
-          if (this_log == prev_log && prev_class == this_class) {
-            $(this).remove();
-            $('#fightLog > br:first-child').remove(); //чистка
-            let $to_change = $('.cws-hit-count').first();
-            let count = parseInt($to_change.attr('count'));
-            count++;
-            $to_change.attr('count', count);
-            $to_change.html(' (х' + count + ')');
-          }
-          else { //новый удар
-            $('<span class="cws-hit-count ' + this_class + '" count=1></span>').insertAfter($(this));
-          }
-          prev_log = this_log;
-          prev_class = this_class;
+        var shortLogObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutationRecord) {
+                if (mutationRecord.type === "childList") {
+                    mutationRecord.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === "SPAN" && !node.classList.contains("cws-hit-count")) {
+                            let this_log = node.textContent, this_class = node.getAttribute("class");
+                            if (this_log == prev_log && prev_class == this_class) {
+                                node.remove();
+                                $('#fightLog > br:first-child').remove();
+                                let $to_change = $('.cws-hit-count').first();
+                                let count = +($to_change.attr('count'));
+                                count++;
+                                $to_change.attr('count', count);
+                                $to_change.html(' (х' + count + ')');
+                            } else {
+                                $('<span class="cws-hit-count ' + this_class + '" count=1></span>').insertAfter(node);
+                            }
+                            prev_log = this_log;
+                            prev_class = this_class;
+                        }
+                    });
+                }
+            });
         });
+        shortLogObserver.observe(document.getElementById('fightLog'), { subtree: true, childList: true });
       });
     }
     if (globals.on_teamFights) {
