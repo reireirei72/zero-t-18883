@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.50
+// @version      1.51
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2024, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.50';
+  const version = '1.51';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -975,14 +975,15 @@
       });
     }
     if (globals.notif_attack) {
-      $("#history_block").on('DOMSubtreeModified', '#ist', function () {
-        let last_note = $($("#ist").html().split('.')).get(-2);
-        if (last_note !== undefined) {
-          if (last_note.indexOf("в боевую стойку, поскольку на меня напал") !== -1) {
-            playAudio(sounds.alert_attacked, globals.sound_notifBeaten);
-          }
-        }
-      });
+        const attackObserver = new MutationObserver(function(mutations) {
+            let last_note = $($("#ist").html().split('.')).get(-2);
+            if (last_note !== undefined) {
+                if (last_note.indexOf("в боевую стойку, поскольку на меня напал") !== -1) {
+                    playAudio(sounds.alert_attacked, globals.sound_notifBeaten);
+                }
+            }
+        });
+        attackObserver.observe(document.getElementById('ist'), { characterData: false, childList: true, attributes: false });
     }
     if (globals.on_moveFightLog) {
       $('#app').ready(function () { //Возможность перетаскивать панель лога боя
@@ -1158,6 +1159,7 @@ input:checked + .cws-team {
       const convert = {
         "Котёнок": "котёнка",
         "Оруженосец": "оруженосца",
+        "Старший оруженосец": "старшего оруженосца",
         "Ученица целителя": "ученицу целителя",
         "Ученик целителя": "ученика целителя",
         "Целительница": "целительницу",
@@ -1268,24 +1270,36 @@ input:checked + .cws-team {
       }
       if (globals.clean_title || globals.clean_status) {
         $(document).ready(function () {
-          $("#cages").on('DOMNodeRemoved', '.catWithArrow', function () {
-            let href = $(this).find('.cat_tooltip > u > a').attr('href');
-            if (href !== undefined) {
-            let cat_id = href.replace(/\D/g, '');
-              if (titles[cat_id] === undefined) {
-                let titleElem = $(this).html().match(/<div><small><i>([^<]+)<\/i><\/small><\/div>/ui);
-                if (titleElem !== null && titleElem[1]) {
-                    titles[cat_id] = titleElem[1];
-                }
-              }
-              let status = $(this).find('.online').text(); // [ На удалении ]
-              let is_punished = $(this).find('div[style*="costume/295."]').length; // Подстилки?
-              if (is_punished) {
-                status = "[ В подстилках ]";
-              }
-              statuses[cat_id] = status;
-              }
-          });
+            const catsCagesObserver = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutationRecord) {
+                    if (mutationRecord.type === "childList") {
+                        mutationRecord.removedNodes.forEach((node) => {
+                            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains("catWithArrow")) {
+                                const linkNode = node.querySelector('.cat_tooltip > u > a');
+                                if (linkNode) {
+                                    let href = linkNode.getAttribute('href');
+                                    if (href !== undefined) {
+                                        let cat_id = href.replace(/\D/g, '');
+                                        if (titles[cat_id] === undefined) {
+                                            let titleElem = node.innerHTML.match(/<div><small><i>([^<]+)<\/i><\/small><\/div>/ui);
+                                            if (titleElem !== null && titleElem[1]) {
+                                                titles[cat_id] = titleElem[1];
+                                            }
+                                        }
+                                        let status = node.querySelector('.online').textContent; // [ На удалении ]
+                                        let is_punished = node.querySelector('div[style*="costume/295."]'); // Подстилки?
+                                        if (is_punished) {
+                                            status = "[ В подстилках ]";
+                                        }
+                                        statuses[cat_id] = status;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+            catsCagesObserver.observe(document.getElementById('cages'), { subtree: true, childList: true, attributes: false });
         });
       }
       let first_load = true;
@@ -1295,11 +1309,11 @@ input:checked + .cws-team {
         // ДОБАВЛЕНИЕ ЛОГА ЧИСТИЛЬЩИКОВ
         $('<hr><h2><a href=\"#\" id=cleaner class=toggle>Деятельность в чистильщиках:</a></h2><span id=cleaner_block>' + cl_history + '</span><br><a id=erase_cleaner href=#>Очистить историю чистки</a>').insertAfter("#history_clean");
         let prev_ist, prev_prev_ist;
-        $("#history_block").on('DOMSubtreeModified', '#ist', function () {
+
+        const cleanHistObserver = new MutationObserver(function(mutations) {
           if (first_load) {
             first_load = false;
-          }
-          else {
+          } else {
             let last_ist = $("#ist").html().split('.'); // to array
             last_ist = last_ist[last_ist.length - 2]; //последняя запись ( -1 тк длина с 1, а массив с 0; -1 тк последняя запись нулевая из-за точки в конце истории)
             if (last_ist !== undefined) {
@@ -1330,8 +1344,8 @@ input:checked + .cws-team {
                   let clean_curr_name = last_ist.match(/ по имени ([А-Яа-яЁё ]+)/u) || ['', ''];
                   let clean_check_name = prev_prev_ist.match(/ по имени ([А-Яа-яЁё ]+)/u) || ['', ''];
                   if (clean_check_name[1] !== '' && clean_check_name[1] == clean_curr_name[1]) { //Имя проверенного и имя поднятого одинаковые
-                    let their_pol = (last_ist.indexOf("кошку") !== -1) ? 'кошку' : 'кота'; //Вообще-то пронаунс это ОЧЕНЬ важно
-                    let ur_pol = (last_ist.indexOf("Подняла") !== -1) ? 'Проверила' : 'Проверил'; //хаххаахаххахаха
+                    let their_pol = (last_ist.indexOf("кошку") !== -1) ? 'кошку' : 'кота';
+                    let ur_pol = (last_ist.indexOf("Подняла") !== -1) ? 'Проверила' : 'Проверил';
                     hist_str = ' ' + ur_pol + ' ' + their_pol + ' по имени ' + clean_check_name[1] + '.' + hist_str;
                   }
                 }
@@ -1348,6 +1362,7 @@ input:checked + .cws-team {
             }
           }
         });
+        cleanHistObserver.observe(document.getElementById('ist'), { characterData: false, childList: true, attributes: false });
         $('#erase_cleaner').on('click', function () {
           $('#cleaner_block').html("История очищена.");
           window.localStorage.setItem('cws_cleaner_history_log', 'История очищена.');
