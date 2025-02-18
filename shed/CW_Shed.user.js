@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.51
+// @version      1.52
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2024, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.51';
+  const version = '1.52';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -964,15 +964,21 @@
       actionNotificationObserver.observe(actParentNode, { subtree: true, childList: true, characterData: true, characterDataOldValue: true, });
     }
     if (globals.notif_eaten) { //Уведомления, когда вас поднимают
-      $("body").on('DOMSubtreeModified', "#block_mess", function () {
-        if ($("#block_mess").html().indexOf("Вы не сможете выбраться") !== -1) {
-          $('title').text("Во рту");
-          playAudio(sounds.sound_notifEndAct, globals.sound_notifEaten);
-        }
-        if ($("#block_mess").html() === "" && !globals.on_actNotif) { //Если пуст, действий нет (нужно, если нет уведомлений на действия)
-          $('title').text('Игровая / CatWar');
-        }
+      var pickNotificationObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutationRecord) {
+              if (mutationRecord.type === "characterData") {
+                  if ($("#block_mess").html().indexOf("Вы не сможете выбраться") !== -1) {
+                      $('title').text("Во рту");
+                      playAudio(sounds.action_notif, globals.sound_notifEaten);
+                  }
+                  if ($("#block_mess").html() === "" && !globals.on_actNotif) { //Если пуст, действий нет (нужно, если нет уведомлений на действия)
+                      $('title').text('Игровая / CatWar');
+                  }
+              }
+          });
       });
+      const actParentNode = document.getElementById('tr_actions').children[0];
+      pickNotificationObserver.observe(actParentNode, { subtree: true, childList: true, characterData: true, characterDataOldValue: true, });
     }
     if (globals.notif_attack) {
         const attackObserver = new MutationObserver(function(mutations) {
