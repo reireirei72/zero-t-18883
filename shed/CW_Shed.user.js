@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.52
+// @version      1.53
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2024, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.52';
+  const version = '1.53';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -2003,13 +2003,13 @@ ${globals.on_treeTechies?`<div><input id="on_treeTechies" type="checkbox" checke
 <span style="font-size: 0.9em"><br>Тип: <i>{type}</i><br>
 <span style="white-space:pre-wrap">{condition}</span>`;
         const top_el_id = isDesktop ? '#branch' : '#site_table';
-      let $achievement = $(`${top_el_id} > .parsed:first tbody > tr img[src*="images.vfl.ru"], `
-                           + `${top_el_id} > .parsed:first > img[src*="images.vfl.ru"], `
+      let $achievement = $(`${top_el_id} > .parsed:first tbody > tr img[src*="i.yapx.cc"], `
+                           + `${top_el_id} > .parsed:first > img[src*="i.yapx.cc"], `
                           + `${top_el_id} > .parsed:first tbody > tr img[src*="i.ibb.co"], `
                            + `${top_el_id} > .parsed:first > img[src*="i.ibb.co"]`),
         $body = $('body'),
         old_code = "";
-        const linkRegex = /(images\.vfl\.ru\/ii\/(\d+\/[\d\w]+\/\d+_?m?)\.png|i\.ibb\.co\/([\d\w]+\/[\d\w_-]+)\.png)/;
+        const linkRegex = /(i\.yapx\.cc\/([\w\d]+)\.png|i\.ibb\.co\/([\d\w]+\/[\d\w_-]+)\.png)/;
       $(document).ready(function () {
         $achievement.last().after(elem);
         $achievement.each(function (index) { // Добавить титул к каждой ачивке
