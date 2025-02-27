@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.53
+// @version      1.54
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
-// @copyright    2020-2024, Тис (https://catwar.net/cat406811)
+// @copyright    2020-2025, Тис (https://catwar.net/cat406811)
 // @license      MIT; https://opensource.org/licenses/MIT
 // @updateURL    https://reireirei72.github.io/zero-t-18883/shed/CW_Shed.meta.js
 // @match        *://catwar.net/*
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.53';
+  const version = '1.54';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -381,7 +381,7 @@
               const ist = $('#ist').text();
               $('#cws_history_clean').css('display', (istElem.text() == 'История очищена.' ? 'none' : 'inline'));
           });
-          observer.observe(window.document.getElementById('ist'), {characterData: false, childList: true, attributes: false}); // Я без понятия что это, в observer не шарю, что-то нашлось на stackoverflow работает и хрен с ним
+          observer.observe(window.document.getElementById('ist'), {characterData: false, childList: true, attributes: false});
 
       });
     }
@@ -1313,61 +1313,66 @@ input:checked + .cws-team {
       cl_history = ((globals.clean_underscore) ? cl_history.replace(/ (Подняла?|Опустила?) /ig, ' <u>$1</u> ') : cl_history.replace(/ <u>(Подняла?|Опустила?)<\/u> /ig, ' $1 '));
       $("#ist").ready(function () {
         // ДОБАВЛЕНИЕ ЛОГА ЧИСТИЛЬЩИКОВ
-        $('<hr><h2><a href=\"#\" id=cleaner class=toggle>Деятельность в чистильщиках:</a></h2><span id=cleaner_block>' + cl_history + '</span><br><a id=erase_cleaner href=#>Очистить историю чистки</a>').insertAfter("#history_clean");
-        let prev_ist, prev_prev_ist;
+          $('<hr><h2><a href=\"#\" id=cleaner class=toggle>Деятельность в чистильщиках:</a></h2><span id=cleaner_block>' + cl_history + '</span><br><a id=erase_cleaner href=#>Очистить историю чистки</a>').insertAfter("#history_clean");
+          let prev_ist, prev_prev_ist;
 
-        const cleanHistObserver = new MutationObserver(function(mutations) {
-          if (first_load) {
-            first_load = false;
-          } else {
-            let last_ist = $("#ist").html().split('.'); // to array
-            last_ist = last_ist[last_ist.length - 2]; //последняя запись ( -1 тк длина с 1, а массив с 0; -1 тк последняя запись нулевая из-за точки в конце истории)
-            if (last_ist !== undefined) {
-              let clean_id = last_ist.match(/cat(\d+)/);
-              if (clean_id) {
-                clean_id = clean_id[1];
-              }
-              last_ist = last_ist.trim().replace(/(<([^>]+)>)/ig, ''); // последняя запись
-              if (((last_ist.indexOf("Поднял") !== -1) || (last_ist.indexOf("Опустил") !== -1)) && ((last_ist.indexOf("кота") !== -1) || (last_ist.indexOf("кошку") !== -1))) { //Если есть "поднял(а)/опустил(а) кота/кошку"
-                let hist_str = ' ' + ((globals.clean_underscore) ? last_ist.replace(/(Подняла*|Опустила*)/, '<u>$1</u>') : last_ist);
-                if (globals.clean_id) {
-                  hist_str += ' (' + clean_id + ')';
-                } //Записать ID
-                if (globals.clean_status && (last_ist.indexOf("Поднял") !== -1) && statuses[clean_id] !== undefined) {
-                  hist_str += ' ' + statuses[clean_id];
-                }
-                if (globals.clean_location) {
-                  hist_str += ' в локации «' + $("#location").html() + '»';
-                } //Записать локацию
-                hist_str += '.';
-                if ((globals.clean_action) &&
-                  (last_ist.indexOf("Поднял") !== -1) &&
-                  (prev_prev_ist !== undefined) &&
-                  (prev_ist.indexOf("Отменил") !== -1) && //Отменил действие
-                  (prev_prev_ist.indexOf("по имени") !== -1) && //Перед этим взаимодействуя с кем-то
-                  (prev_prev_ist.indexOf("Поднял") === -1) && //Не поднял и не опустил
-                  (prev_prev_ist.indexOf("Опустил") === -1)) {
-                  let clean_curr_name = last_ist.match(/ по имени ([А-Яа-яЁё ]+)/u) || ['', ''];
-                  let clean_check_name = prev_prev_ist.match(/ по имени ([А-Яа-яЁё ]+)/u) || ['', ''];
-                  if (clean_check_name[1] !== '' && clean_check_name[1] == clean_curr_name[1]) { //Имя проверенного и имя поднятого одинаковые
-                    let their_pol = (last_ist.indexOf("кошку") !== -1) ? 'кошку' : 'кота';
-                    let ur_pol = (last_ist.indexOf("Подняла") !== -1) ? 'Проверила' : 'Проверил';
-                    hist_str = ' ' + ur_pol + ' ' + their_pol + ' по имени ' + clean_check_name[1] + '.' + hist_str;
+          const cleanHistObserver = new MutationObserver(function(mutations) {
+              if (first_load) {
+                  first_load = false;
+              } else {
+                  const testDate = new Date();
+                  console.log('cleanHistObserver triggered at', testDate.getTime());
+                  let last_ist = $("#ist").html().split('.');
+                  last_ist = last_ist[last_ist.length - 2];
+                  if (last_ist !== undefined) {
+                      console.log('Последняя запись в истории:', last_ist);
+                      let clean_id = last_ist.match(/cat(\d+)/);
+                      if (clean_id) {
+                          clean_id = clean_id[1];
+                      }
+                      last_ist = last_ist.trim().replace(/(<([^>]+)>)/ig, '');
+                      if (((last_ist.indexOf("Поднял") !== -1) || (last_ist.indexOf("Опустил") !== -1)) && ((last_ist.indexOf("кота") !== -1) || (last_ist.indexOf("кошку") !== -1))) { //Если есть "поднял(а)/опустил(а) кота/кошку"
+                          console.log('В последней записи найдено "Поднял/опустил", ID жертвы:', clean_id);
+                          let hist_str = ' ' + ((globals.clean_underscore) ? last_ist.replace(/(Подняла*|Опустила*)/, '<u>$1</u>') : last_ist);
+                          if (globals.clean_id) {
+                              hist_str += ' (' + clean_id + ')';
+                          } //Записать ID
+                          if (globals.clean_status && (last_ist.indexOf("Поднял") !== -1) && statuses[clean_id] !== undefined) {
+                              hist_str += ' ' + statuses[clean_id];
+                          }
+                          if (globals.clean_location) {
+                              hist_str += ' в локации «' + $("#location").html() + '»';
+                          } //Записать локацию
+                          hist_str += '.';
+                          if ((globals.clean_action) && // следить за проверками
+                              (last_ist.indexOf("Поднял") !== -1) &&
+                              (prev_prev_ist !== undefined) && // поза-позапрошлая запись есть
+                              (prev_ist.indexOf("Отменил") !== -1) && //Отменил действие
+                              (prev_prev_ist.indexOf("по имени") !== -1) && //Перед этим взаимодействуя с кем-то
+                              (prev_prev_ist.indexOf("Поднял") === -1) && //Не поднял и не опустил
+                              (prev_prev_ist.indexOf("Опустил") === -1)) {
+                              let clean_curr_name = last_ist.match(/ по имени ([А-Яа-яЁё ]+)/u) || ['', ''];
+                              let clean_check_name = prev_prev_ist.match(/ по имени ([А-Яа-яЁё ]+)/u) || ['', ''];
+                              if (clean_check_name[1] !== '' && clean_check_name[1] == clean_curr_name[1]) { //Имя проверенного и имя поднятого одинаковые
+                                  let their_pol = (last_ist.indexOf("кошку") !== -1) ? 'кошку' : 'кота';
+                                  let ur_pol = (last_ist.indexOf("Подняла") !== -1) ? 'Проверила' : 'Проверил';
+                                  hist_str = ' ' + ur_pol + ' ' + their_pol + ' по имени ' + clean_check_name[1] + '.' + hist_str;
+                              }
+                          }
+                          if (globals.clean_title && titles[clean_id]) { //Поменять на должность
+                              hist_str = hist_str.replace(/(кота|кошку)/g, title_convert(titles[clean_id]));
+                          }
+                          console.log('Добавляем к истории чистки запись:', hist_str);
+                          if ($("#location").html() != '[ Загружается… ]' && hist_str !== undefined) { //ок?
+                              $('#cleaner_block').append(hist_str);
+                              window.localStorage.setItem('cws_cleaner_history_log', $('#cleaner_block').html());
+                          }
+                      }
+                      prev_prev_ist = prev_ist;
+                      prev_ist = last_ist;
                   }
-                }
-                if (globals.clean_title && titles[clean_id] !== undefined && titles[clean_id]) {
-                  hist_str = hist_str.replace(/(кота|кошку)/g, title_convert(titles[clean_id]));
-                } //Поменять на должность
-                if ($("#location").html() != '[ Загружается… ]' && hist_str !== undefined) { //ок?
-                  $('#cleaner_block').append(hist_str);
-                  window.localStorage.setItem('cws_cleaner_history_log', $('#cleaner_block').html());
-                }
               }
-              prev_prev_ist = prev_ist;
-              prev_ist = last_ist;
-            }
-          }
-        });
+          });
         cleanHistObserver.observe(document.getElementById('ist'), { characterData: false, childList: true, attributes: false });
         $('#erase_cleaner').on('click', function () {
           $('#cleaner_block').html("История очищена.");
