@@ -1,0 +1,281 @@
+<html lang="ru">
+    <head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="/css/main.css">
+        <script type="text/javascript" src="script.js"></script>
+        <title>Абстрактный подвал</title>
+    </head>
+    </head>
+<body>
+    <div id="header" class="mb-2">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container">
+            <a class="navbar-brand" href="/"><b>Абстрактный подвал</b></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+              <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/links/">Скрипты</a></li>
+                <li class="nav-item active"><a class="nav-link" href="/pathfind/">Поиск пути</a></li>
+                <li class="nav-item"><a class="nav-link" href="/swimaway/">Расчёт ПУ</a></li>
+                <li class="nav-item"><a class="nav-link" href="/reports/">Составление отчётов</a></li>
+              </ul>
+            </div> 
+          </div>
+        </nav>
+    </div>
+    <div class="container">
+        <h3 align="center">Поиск пути</h3>
+        <p align="center"><i>*При наведении на переход (нажатии, если Вы с телефона) можно посмотреть, куда он ведёт.</i></p>
+        <div class="row justify-content-center mb-2">
+        	<div class="col-auto">
+				<div class="btn-group" role="group">
+					<input type="radio" class="btn-check" name="c1" id="dush" checked="true">
+		          <label for="dush" class="btn btn-secondary" style="width: 7em;">Душевая</label>
+
+		          <input type="radio" class="btn-check" name="c1" id="stepi">
+		          <label for="stepi" class="btn btn-secondary" style="width: 7em;">Степи</label>
+		        </div>
+        	</div>
+        </div>
+        <div class="row justify-content-center">
+			<div class="mb-2 col-auto">
+				<div class="row">
+			    	<div class="col-12 col-sm-6 col-lg-auto">
+						<div class="row justify-content-center">
+							<div class="search center col-auto">
+								<table class="pathfind-table" id="f_tbl">
+									<tbody>
+										<tr><td colspan="9">Начальная локация:</td><td><div class="clear" clear="f_tbl" title="Очистить">×</div></td></tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="f00"><label class="game-cell" for="f00" id="lf00"></label></td>
+											<td><input type="checkbox" class="hidden" id="f01"><label class="game-cell" for="f01" id="lf01"></label></td>
+											<td><input type="checkbox" class="hidden" id="f02"><label class="game-cell" for="f02" id="lf02"></label></td>
+											<td><input type="checkbox" class="hidden" id="f03"><label class="game-cell" for="f03" id="lf03"></label></td>
+											<td><input type="checkbox" class="hidden" id="f04"><label class="game-cell" for="f04" id="lf04"></label></td>
+											<td><input type="checkbox" class="hidden" id="f05"><label class="game-cell" for="f05" id="lf05"></label></td>
+											<td><input type="checkbox" class="hidden" id="f06"><label class="game-cell" for="f06" id="lf06"></label></td>
+											<td><input type="checkbox" class="hidden" id="f07"><label class="game-cell" for="f07" id="lf07"></label></td>
+											<td><input type="checkbox" class="hidden" id="f08"><label class="game-cell" for="f08" id="lf08"></label></td>
+											<td><input type="checkbox" class="hidden" id="f09"><label class="game-cell" for="f09" id="lf09"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="f10"><label class="game-cell" for="f10" id="lf10"></label></td>
+											<td><input type="checkbox" class="hidden" id="f11"><label class="game-cell" for="f11" id="lf11"></label></td>
+											<td><input type="checkbox" class="hidden" id="f12"><label class="game-cell" for="f12" id="lf12"></label></td>
+											<td><input type="checkbox" class="hidden" id="f13"><label class="game-cell" for="f13" id="lf13"></label></td>
+											<td><input type="checkbox" class="hidden" id="f14"><label class="game-cell" for="f14" id="lf14"></label></td>
+											<td><input type="checkbox" class="hidden" id="f15"><label class="game-cell" for="f15" id="lf15"></label></td>
+											<td><input type="checkbox" class="hidden" id="f16"><label class="game-cell" for="f16" id="lf16"></label></td>
+											<td><input type="checkbox" class="hidden" id="f17"><label class="game-cell" for="f17" id="lf17"></label></td>
+											<td><input type="checkbox" class="hidden" id="f18"><label class="game-cell" for="f18" id="lf18"></label></td>
+											<td><input type="checkbox" class="hidden" id="f19"><label class="game-cell" for="f19" id="lf19"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="f20"><label class="game-cell" for="f20" id="lf20"></label></td>
+											<td><input type="checkbox" class="hidden" id="f21"><label class="game-cell" for="f21" id="lf21"></label></td>
+											<td><input type="checkbox" class="hidden" id="f22"><label class="game-cell" for="f22" id="lf22"></label></td>
+											<td><input type="checkbox" class="hidden" id="f23"><label class="game-cell" for="f23" id="lf23"></label></td>
+											<td><input type="checkbox" class="hidden" id="f24"><label class="game-cell" for="f24" id="lf24"></label></td>
+											<td><input type="checkbox" class="hidden" id="f25"><label class="game-cell" for="f25" id="lf25"></label></td>
+											<td><input type="checkbox" class="hidden" id="f26"><label class="game-cell" for="f26" id="lf26"></label></td>
+											<td><input type="checkbox" class="hidden" id="f27"><label class="game-cell" for="f27" id="lf27"></label></td>
+											<td><input type="checkbox" class="hidden" id="f28"><label class="game-cell" for="f28" id="lf28"></label></td>
+											<td><input type="checkbox" class="hidden" id="f29"><label class="game-cell" for="f29" id="lf29"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="f30"><label class="game-cell" for="f30" id="lf30"></label></td>
+											<td><input type="checkbox" class="hidden" id="f31"><label class="game-cell" for="f31" id="lf31"></label></td>
+											<td><input type="checkbox" class="hidden" id="f32"><label class="game-cell" for="f32" id="lf32"></label></td>
+											<td><input type="checkbox" class="hidden" id="f33"><label class="game-cell" for="f33" id="lf33"></label></td>
+											<td><input type="checkbox" class="hidden" id="f34"><label class="game-cell" for="f34" id="lf34"></label></td>
+											<td><input type="checkbox" class="hidden" id="f35"><label class="game-cell" for="f35" id="lf35"></label></td>
+											<td><input type="checkbox" class="hidden" id="f36"><label class="game-cell" for="f36" id="lf36"></label></td>
+											<td><input type="checkbox" class="hidden" id="f37"><label class="game-cell" for="f37" id="lf37"></label></td>
+											<td><input type="checkbox" class="hidden" id="f38"><label class="game-cell" for="f38" id="lf38"></label></td>
+											<td><input type="checkbox" class="hidden" id="f39"><label class="game-cell" for="f39" id="lf39"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="f40"><label class="game-cell" for="f40" id="lf40"></label></td>
+											<td><input type="checkbox" class="hidden" id="f41"><label class="game-cell" for="f41" id="lf41"></label></td>
+											<td><input type="checkbox" class="hidden" id="f42"><label class="game-cell" for="f42" id="lf42"></label></td>
+											<td><input type="checkbox" class="hidden" id="f43"><label class="game-cell" for="f43" id="lf43"></label></td>
+											<td><input type="checkbox" class="hidden" id="f44"><label class="game-cell" for="f44" id="lf44"></label></td>
+											<td><input type="checkbox" class="hidden" id="f45"><label class="game-cell" for="f45" id="lf45"></label></td>
+											<td><input type="checkbox" class="hidden" id="f46"><label class="game-cell" for="f46" id="lf46"></label></td>
+											<td><input type="checkbox" class="hidden" id="f47"><label class="game-cell" for="f47" id="lf47"></label></td>
+											<td><input type="checkbox" class="hidden" id="f48"><label class="game-cell" for="f48" id="lf48"></label></td>
+											<td><input type="checkbox" class="hidden" id="f49"><label class="game-cell" for="f49" id="lf49"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="f50"><label class="game-cell" for="f50" id="lf50"></label></td>
+											<td><input type="checkbox" class="hidden" id="f51"><label class="game-cell" for="f51" id="lf51"></label></td>
+											<td><input type="checkbox" class="hidden" id="f52"><label class="game-cell" for="f52" id="lf52"></label></td>
+											<td><input type="checkbox" class="hidden" id="f53"><label class="game-cell" for="f53" id="lf53"></label></td>
+											<td><input type="checkbox" class="hidden" id="f54"><label class="game-cell" for="f54" id="lf54"></label></td>
+											<td><input type="checkbox" class="hidden" id="f55"><label class="game-cell" for="f55" id="lf55"></label></td>
+											<td><input type="checkbox" class="hidden" id="f56"><label class="game-cell" for="f56" id="lf56"></label></td>
+											<td><input type="checkbox" class="hidden" id="f57"><label class="game-cell" for="f57" id="lf57"></label></td>
+											<td><input type="checkbox" class="hidden" id="f58"><label class="game-cell" for="f58" id="lf58"></label></td>
+											<td><input type="checkbox" class="hidden" id="f59"><label class="game-cell" for="f59" id="lf59"></label></td>
+										</tr>				
+									</tbody>
+								</table>
+								ИЛИ <input type=checkbox id=from_chk>[<label for=from_chk>Номером</label>: <input type="number" class="inp-number hid-scroll number-3" min=1 max=699 id="from_num" placeholder=699>]
+								<input type="hidden" name="f_id" id="f_id">
+							</div>
+						</div>
+			    	</div>
+			    	<div class="mb-2 col-12 col-sm-6 col-lg-auto">
+						<div class="row justify-content-center">
+			        		<div class="search center col-auto">
+								<table class="pathfind-table" id="t_tbl">
+									<tbody>
+										<tr><td colspan="9">Конечная локация:</td><td><div class="clear" clear="t_tbl" title="Очистить">×</div></td></tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="t00"><label class="game-cell" for="t00" id="lt00"></label></td>
+											<td><input type="checkbox" class="hidden" id="t01"><label class="game-cell" for="t01" id="lt01"></label></td>
+											<td><input type="checkbox" class="hidden" id="t02"><label class="game-cell" for="t02" id="lt02"></label></td>
+											<td><input type="checkbox" class="hidden" id="t03"><label class="game-cell" for="t03" id="lt03"></label></td>
+											<td><input type="checkbox" class="hidden" id="t04"><label class="game-cell" for="t04" id="lt04"></label></td>
+											<td><input type="checkbox" class="hidden" id="t05"><label class="game-cell" for="t05" id="lt05"></label></td>
+											<td><input type="checkbox" class="hidden" id="t06"><label class="game-cell" for="t06" id="lt06"></label></td>
+											<td><input type="checkbox" class="hidden" id="t07"><label class="game-cell" for="t07" id="lt07"></label></td>
+											<td><input type="checkbox" class="hidden" id="t08"><label class="game-cell" for="t08" id="lt08"></label></td>
+											<td><input type="checkbox" class="hidden" id="t09"><label class="game-cell" for="t09" id="lt09"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="t10"><label class="game-cell" for="t10" id="lt10"></label></td>
+											<td><input type="checkbox" class="hidden" id="t11"><label class="game-cell" for="t11" id="lt11"></label></td>
+											<td><input type="checkbox" class="hidden" id="t12"><label class="game-cell" for="t12" id="lt12"></label></td>
+											<td><input type="checkbox" class="hidden" id="t13"><label class="game-cell" for="t13" id="lt13"></label></td>
+											<td><input type="checkbox" class="hidden" id="t14"><label class="game-cell" for="t14" id="lt14"></label></td>
+											<td><input type="checkbox" class="hidden" id="t15"><label class="game-cell" for="t15" id="lt15"></label></td>
+											<td><input type="checkbox" class="hidden" id="t16"><label class="game-cell" for="t16" id="lt16"></label></td>
+											<td><input type="checkbox" class="hidden" id="t17"><label class="game-cell" for="t17" id="lt17"></label></td>
+											<td><input type="checkbox" class="hidden" id="t18"><label class="game-cell" for="t18" id="lt18"></label></td>
+											<td><input type="checkbox" class="hidden" id="t19"><label class="game-cell" for="t19" id="lt19"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="t20"><label class="game-cell" for="t20" id="lt20"></label></td>
+											<td><input type="checkbox" class="hidden" id="t21"><label class="game-cell" for="t21" id="lt21"></label></td>
+											<td><input type="checkbox" class="hidden" id="t22"><label class="game-cell" for="t22" id="lt22"></label></td>
+											<td><input type="checkbox" class="hidden" id="t23"><label class="game-cell" for="t23" id="lt23"></label></td>
+											<td><input type="checkbox" class="hidden" id="t24"><label class="game-cell" for="t24" id="lt24"></label></td>
+											<td><input type="checkbox" class="hidden" id="t25"><label class="game-cell" for="t25" id="lt25"></label></td>
+											<td><input type="checkbox" class="hidden" id="t26"><label class="game-cell" for="t26" id="lt26"></label></td>
+											<td><input type="checkbox" class="hidden" id="t27"><label class="game-cell" for="t27" id="lt27"></label></td>
+											<td><input type="checkbox" class="hidden" id="t28"><label class="game-cell" for="t28" id="lt28"></label></td>
+											<td><input type="checkbox" class="hidden" id="t29"><label class="game-cell" for="t29" id="lt29"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="t30"><label class="game-cell" for="t30" id="lt30"></label></td>
+											<td><input type="checkbox" class="hidden" id="t31"><label class="game-cell" for="t31" id="lt31"></label></td>
+											<td><input type="checkbox" class="hidden" id="t32"><label class="game-cell" for="t32" id="lt32"></label></td>
+											<td><input type="checkbox" class="hidden" id="t33"><label class="game-cell" for="t33" id="lt33"></label></td>
+											<td><input type="checkbox" class="hidden" id="t34"><label class="game-cell" for="t34" id="lt34"></label></td>
+											<td><input type="checkbox" class="hidden" id="t35"><label class="game-cell" for="t35" id="lt35"></label></td>
+											<td><input type="checkbox" class="hidden" id="t36"><label class="game-cell" for="t36" id="lt36"></label></td>
+											<td><input type="checkbox" class="hidden" id="t37"><label class="game-cell" for="t37" id="lt37"></label></td>
+											<td><input type="checkbox" class="hidden" id="t38"><label class="game-cell" for="t38" id="lt38"></label></td>
+											<td><input type="checkbox" class="hidden" id="t39"><label class="game-cell" for="t39" id="lt39"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="t40"><label class="game-cell" for="t40" id="lt40"></label></td>
+											<td><input type="checkbox" class="hidden" id="t41"><label class="game-cell" for="t41" id="lt41"></label></td>
+											<td><input type="checkbox" class="hidden" id="t42"><label class="game-cell" for="t42" id="lt42"></label></td>
+											<td><input type="checkbox" class="hidden" id="t43"><label class="game-cell" for="t43" id="lt43"></label></td>
+											<td><input type="checkbox" class="hidden" id="t44"><label class="game-cell" for="t44" id="lt44"></label></td>
+											<td><input type="checkbox" class="hidden" id="t45"><label class="game-cell" for="t45" id="lt45"></label></td>
+											<td><input type="checkbox" class="hidden" id="t46"><label class="game-cell" for="t46" id="lt46"></label></td>
+											<td><input type="checkbox" class="hidden" id="t47"><label class="game-cell" for="t47" id="lt47"></label></td>
+											<td><input type="checkbox" class="hidden" id="t48"><label class="game-cell" for="t48" id="lt48"></label></td>
+											<td><input type="checkbox" class="hidden" id="t49"><label class="game-cell" for="t49" id="lt49"></label></td>
+										</tr>
+										<tr>
+											<td><input type="checkbox" class="hidden" id="t50"><label class="game-cell" for="t50" id="lt50"></label></td>
+											<td><input type="checkbox" class="hidden" id="t51"><label class="game-cell" for="t51" id="lt51"></label></td>
+											<td><input type="checkbox" class="hidden" id="t52"><label class="game-cell" for="t52" id="lt52"></label></td>
+											<td><input type="checkbox" class="hidden" id="t53"><label class="game-cell" for="t53" id="lt53"></label></td>
+											<td><input type="checkbox" class="hidden" id="t54"><label class="game-cell" for="t54" id="lt54"></label></td>
+											<td><input type="checkbox" class="hidden" id="t55"><label class="game-cell" for="t55" id="lt55"></label></td>
+											<td><input type="checkbox" class="hidden" id="t56"><label class="game-cell" for="t56" id="lt56"></label></td>
+											<td><input type="checkbox" class="hidden" id="t57"><label class="game-cell" for="t57" id="lt57"></label></td>
+											<td><input type="checkbox" class="hidden" id="t58"><label class="game-cell" for="t58" id="lt58"></label></td>
+											<td><input type="checkbox" class="hidden" id="t59"><label class="game-cell" for="t59" id="lt59"></label></td>
+										</tr>
+									</tbody>
+								</table>
+								ИЛИ <input type="checkbox" id="to_chk">[<label for="to_chk">Номером</label>: <input type="number" class="inp-number hid-scroll number-3" min="1" max="699" id="to_num" placeholder="699">]
+								<input type="hidden" name="t_id" id="t_id">
+							</div>
+						</div>
+			    	</div>
+				</div>
+
+				<div class="row justify-content-center">
+					<div class="col-auto mb-2 mb-sm-0">
+						<button class="btn btn-secondary btn-sm" id="switch">Поменять локации местами</button>
+					</div>
+					<div class="col-auto">
+						<button class="btn btn-primary btn-sm" id="sFind">Найти путь</button>
+					</div>
+			    </div>
+			</div>
+        	<div class="mb-2 col-12 col-sm-6 col-lg-3 offset-lg-2">
+
+        		<div class="show">
+					<table style="width:100%">
+						<tbody>
+							<tr>
+							<td align="center">[ Показать локацию ]</td>
+							</tr>
+						</tbody>
+					</table>
+					<div id="show_container" class="center">
+							<div id="show_res">
+								<table class="path pathfind-table" style="margin:auto;margin-top: -1px;">
+									<tbody>
+										<tr>
+											<td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td>
+										</tr>
+										<tr>
+											<td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td>
+										</tr>
+										<tr>
+											<td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td>
+										</tr>
+										<tr>
+											<td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td>
+										</tr>
+										<tr>
+											<td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td>
+										</tr>
+										<tr>
+											<td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td><td class="unlit"></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+								Номер: <input type="number" class="inp-number hid-scroll number-3" min="1" max="699" id="sh_loc" placeholder="699">
+								<button class="btn btn-secondary btn-sm" id="sShow">Показать</button>
+					</div>
+				</div>
+
+        	</div>
+        </div>
+
+
+        <div id="search_res"></div>
+    </div>
+    <div id="footer"></div>
+</body>
+</html>
