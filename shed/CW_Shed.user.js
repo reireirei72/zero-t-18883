@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.54
+// @version      1.55
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.54';
+  const version = '1.55';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -2305,15 +2305,18 @@ height: 2.3em;
 }`);
         /*РЕКА*/
         if (blogID == 13664) { // Охрана границ
-          let patr_time = 21,
+          let patr_time = 23,
             doz_time = leadZero(date.getHours()),
             patr_date = new Date(date),
             doz_date = new Date(date);
           let hour = date.getHours(),
             minute = date.getMinutes();
-          if (hour < 12) {
+          if (hour < 9) {
             patr_date.setDate(patr_date.getDate() - 1);
           } // yesterday
+          if (hour >= 9) {
+            patr_time = 9;
+          }
           if (hour >= 12) {
             patr_time = 12;
           }
@@ -2325,6 +2328,9 @@ height: 2.3em;
           }
           if (hour >= 21) {
             patr_time = 21;
+          }
+          if (hour >= 23) {
+            patr_time = 23;
           }
           const patr_date_str = patr_date.getFullYear() + '-' + leadZero(patr_date.getMonth() + 1) + '-' + leadZero(patr_date.getDate());
           $('#send_comment').append(`
