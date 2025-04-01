@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.55
+// @version      1.56
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.55';
+  const version = '1.56';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -2449,6 +2449,10 @@ ${my_id_div}
         Список участников, <b>исключая</b> вас, разделяя запятой:
         <textarea style="width:95%;resize:none;" class="cws-input" id="cws_patr_members" placeholder="Синяя Звезда, Львиногрив, Огонёк"></textarea>
     </div>
+    <div>
+        Список <b>Северян-соседей</b>, разделяя запятой:
+        <textarea style="width:95%;resize:none;" class="cws-input" id="cws_patr_members_ally" placeholder="Буран, Клык"></textarea>
+    </div>
     <button class="inp-button" id="r03_patr">Заполнить отчет</button>
   </div>
 </div>`);
@@ -2461,18 +2465,21 @@ ${my_id_div}
               mar = 'Не выбран маршрут';
             }
             let arr_members = strToArr($('#cws_patr_members').val());
-            let id_arr = [];
+            let arr_members_ally = strToArr($('#cws_patr_members_ally').val());
+            let id_arr = [], id_arr_ally = [];
             let name_error = false; // ошибка в имени участника
-            arr_members.forEach((element) => {
+            const convertNames = (element, output_array) => {
               let name = element.trim();
               let tmp = nameToID(name);
               if (parseInt(tmp)) {
-                id_arr.push(name + ' [' + tmp + ']');
+                output_array.push(name + ' [' + tmp + ']');
               }
               else {
                 name_error = true;
               }
-            })
+            };
+            arr_members.forEach((element) => convertNames(element, id_arr));
+            arr_members_ally.forEach((element) => convertNames(element, id_arr_ally));
             let date = splitDateStr($("#r03_patr_date").val()); // дата
             let hr = parseInt($("#r03_patr_time").val().split(":")[0]);
             let txt = `[u][b]Патруль[/b][/u]
@@ -2480,6 +2487,9 @@ ${my_id_div}
 [b]Маршрут:[/b] ${mar};
 [b]Ведущий:[/b] ${myid};
 [b]Участники:[/b] ${id_arr.join(', ')};`;
+            if (id_arr_ally.length > 0) {
+                txt += `\n[b]Север:[/b] ${id_arr_ally.join(', ')};`
+            }
             if (name_error) {
               txt += `\n! ! ! В отчёте какая-то ошибка с именем (минимум одно из имён не было найдено). Проверьте его перед тем, как отправить.`
             }
@@ -2548,10 +2558,13 @@ ${my_id_div}
                     id_arr = [],
                     tmp_arr = [];
                   $.each(name_arr, function (index, name) {
-                    let tmp = nameToID(name.trim());
+                    let insideMatch = name.match(/\(.*\)/);
+                    let postfix = insideMatch ? ' ' + insideMatch[0].trim() : "";
+                    name = name.replace(/\(.*\)/, "").trim();
+                    let tmp = nameToID(name);
                     if (parseInt(tmp)) {
                       //id_arr.push(masking(tmp, '[cat%ID%] [%ID%]'));
-                      id_arr.push(name + ' [' + tmp + ']');
+                      id_arr.push(name + ' [' + tmp + ']' + postfix);
                     }
                     else {
                       id_arr.push(name_arr[index] + ' [?]');
@@ -2585,22 +2598,28 @@ ${my_id_div}
             $('.r03-doz-nar-free-wrap').each(function () {
               let free = $(this).find($('input.r03-doz-nar-free')).val();
               if (free) {
+                let insideMatch = free.match(/\(.*\)/);
+                let postfix = insideMatch ? ' ' + insideMatch[0].trim() : "";
+                free = free.replace(/\(.*\)/, "").trim();
                 if (isNaN(parseInt(free))) {
                   free = nameToID(free.trim());
                 }
                 free = masking(free, '[cat%ID%] [%ID%]');
-                free_arr.push(free);
+                free_arr.push(free + postfix);
               }
             });
             $('.r03-doz-nar-wrap').each(function () {
               let name = $(this).find($('input.r03-doz-nar-narname')).val(),
                 reason = $(this).find($('select.r03-doz-nar-narreas')).val();
               if (name) {
+                let insideMatch = name.match(/\(.*\)/);
+                let postfix = insideMatch ? ' ' + insideMatch[0].trim() : "";
+                name = name.replace(/\(.*\)/, "").trim();
                 if (isNaN(parseInt(name))) {
                   name = nameToID(name.trim());
                 }
                 name = masking(name, '[cat%ID%] [%ID%]');
-                nar_arr.push(name + ' (' + reason + ')');
+                nar_arr.push(name + postfix + ' (' + reason + ')');
               }
             });
             if (free_arr.length) {
