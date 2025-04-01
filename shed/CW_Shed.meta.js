@@ -1,4 +1,4 @@
 // ==UserScript==
-// @version    1.55
+// @version    1.56
 // @name    CW: Shed
 // ==/UserScript==
