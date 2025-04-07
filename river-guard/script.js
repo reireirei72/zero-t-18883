@@ -335,7 +335,7 @@ $(document).ready(function() {
 					from_month: comment_date.getMonth(),
 					from_day: comment_date.getDate(),
 				};
-			} else {
+			} else if (string.toLowerCase().indexOf('север:') !== 0 && string.toLowerCase().indexOf('гроза:') !== 0) {
 				return error(`Непонятно что происходит на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}`);
 			}
 		}
