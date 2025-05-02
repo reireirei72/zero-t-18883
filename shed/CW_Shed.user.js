@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.56
+// @version      1.57
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.56';
+  const version = '1.57';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -967,11 +967,11 @@
       var pickNotificationObserver = new MutationObserver(function(mutations) {
           mutations.forEach(function(mutationRecord) {
               if (mutationRecord.type === "characterData") {
-                  if ($("#block_mess").html().indexOf("Вы не сможете выбраться") !== -1) {
+                  if ($("#block_mess").length && $("#block_mess").html().indexOf("Вы не сможете выбраться") !== -1) {
                       $('title').text("Во рту");
                       playAudio(sounds.action_notif, globals.sound_notifEaten);
                   }
-                  if ($("#block_mess").html() === "" && !globals.on_actNotif) { //Если пуст, действий нет (нужно, если нет уведомлений на действия)
+                  if ($("#block_mess").length && $("#block_mess").html() === "" && !globals.on_actNotif) { //Если пуст, действий нет (нужно, если нет уведомлений на действия)
                       $('title').text('Игровая / CatWar');
                   }
               }
