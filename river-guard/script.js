@@ -102,10 +102,10 @@ $(document).ready(function() {
             "Нагретые камни": "НК",
             "Одинокий склон": "ОС",
             "Главный туннель": "ГТ",
-            "Активный 1": "01",
-            "Активный 2": "02",
-            "Активный 3": "03",
-            "Активный 4": "04",
+            "1 маршрут": "01",
+            "2 маршрут": "02",
+            "3 маршрут": "03",
+            "4 маршрут": "04",
         };
 		var comments = $('#comments').val().split('\n'), comment_date, pd_date = new Date(), d_end_date = new Date(), is_doz = false, patr_type, comment_num, comment_author, doz_place;
 
@@ -199,7 +199,7 @@ $(document).ready(function() {
 				if (d_end_date - pd_date < 0) {
 					error(`Вероятно, ошибка в датовремени конца дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Дата начала отчёта меньше даты конца`);
 				}
-				if (comment_date - pd_date > 1000 * 60 * 15) { // 15 минут разницы
+				if (comment_date - d_end_date > 1000 * 60 * 15) { // 15 минут разницы
 					error(`${comment_author} отписал очень поздно дозор в комменте #${comment_num}, строчка выглядит как ${string}. Подозрительно`);
 				}
 				if (d_end_date < lastWeek) {
@@ -210,7 +210,7 @@ $(document).ready(function() {
 				if (s.length != 2) {
 					return error(`Нет двоеточия на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}`);
 				}
-				let doz_type = s[1].trim().replace(/[^А-Яа-яЁё ]/g, "");;
+				let doz_type = s[1].trim().replace(/[^А-Яа-яЁё \d]/g, "");;
 				if (!places[doz_type]) {
 					error(`Вероятно, ошибка в месте дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Мы не нашли такое место это где...`);
 				}
