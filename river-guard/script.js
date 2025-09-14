@@ -102,6 +102,8 @@ $(document).ready(function() {
             "Нагретые камни": "НК",
             "Одинокий склон": "ОС",
             "Главный туннель": "ГТ",
+            "Главный туннель Реки": "ГТ",
+            "Главный туннель Речного племени": "ГТ",
             "1 маршрут": "01",
             "2 маршрут": "02",
             "3 маршрут": "03",
@@ -153,7 +155,7 @@ $(document).ready(function() {
 				is_doz = false;
 			} else if (is_doz && /^Дата и время начала:/u.test(string)) {
 				pd_date = new Date();
-				let re = string.match(/^Дата и время начала: ?(\d+)\.(\d+)\.?(\d+)?,? *(\d+):(\d+)/u);
+				let re = string.match(/^Дата и время начала: *(\d+)\.(\d+)\.?(\d+)?,? *(\d+):(\d+)/u);
 				if (!re) {
 					return error(`Вероятно, ошибка в датовремени начала дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Регулярочка под "Дата и время начала: дд.мм чч:мм" не сработала.`);
 				}
@@ -177,7 +179,7 @@ $(document).ready(function() {
 				}
 			} else if (is_doz && /^Дата и время конца:/u.test(string)) {
 				d_end_date = new Date();
-				let re = string.match(/^Дата и время конца: ?(\d+)\.(\d+)\.?(\d+)?,? *(\d+):(\d+)/u);
+				let re = string.match(/^Дата и время конца: *(\d+)\.(\d+)\.?(\d+)?,? *(\d+):(\d+)/u);
 				if (!re) {
 					return error(`Вероятно, ошибка в датовремени конца дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Регулярочка под "Дата и время конца: дд.мм чч:мм" не сработала.`);
 				}
@@ -193,7 +195,7 @@ $(document).ready(function() {
 				if (comment_date.getFullYear() + 1 == d_end_date.getFullYear()) { // поправочка на нг
 					d_end_date.setFullYear(comment_date.getFullYear());
 				}
-				if (comment_date - d_end_date < 0) {
+				if (comment_date - d_end_date < -1000) {
 					error(`Вероятно, ошибка в датовремени конца дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Дата комментария меньше даты отчёта`);
 				}
 				if (d_end_date - pd_date < 0) {
