@@ -108,6 +108,10 @@ $(document).ready(function() {
             "2 маршрут": "02",
             "3 маршрут": "03",
             "4 маршрут": "04",
+            "1 активный": "01",
+            "2 активный": "02",
+            "3 активный": "03",
+            "4 активный": "04",
         };
 		var comments = $('#comments').val().split('\n'), comment_date, pd_date = new Date(), d_end_date = new Date(), is_doz = false, patr_type, comment_num, comment_author, doz_place;
 
