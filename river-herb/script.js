@@ -196,7 +196,7 @@ $(document).ready(function() {
 		let count = [];
 		for (const i in patr) {
 			const cur = patr[i];
-			const points = (cur.type == 'травник') ? 1.5 : 1;
+			const points = 1;// (cur.type == 'травник') ? 1.5 : 1;
 			for (const c_i in cur.cats) {
 				const now = cur.cats[c_i];
 				const instance = _.find(count, {id: now.id});
