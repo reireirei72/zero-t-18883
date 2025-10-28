@@ -591,7 +591,6 @@
                   // нажато действие нами или с нами, или нас подняли
                   let lastAction = $("#ist").text().split('.');
                   lastAction = (lastAction[lastAction.length - 2] || '').trim();
-                  console.log('last action', lastAction);
                   if (lastAction.indexOf('Принюхал') === 0 || lastAction.indexOf('Обнюхал') === 0) { // нажали на нюх
                       const smell_timer = {"0": 3600,"1": 3600,"2": 3600,"3": 3600,"4": 1800,"5": 1200,"6": 900,"7": 720,"8": 600,"9": 0};
                       const now = new Date();
@@ -1340,18 +1339,15 @@ input:checked + .cws-team {
                   first_load = false;
               } else {
                   const testDate = new Date();
-                  console.log('cleanHistObserver triggered at', testDate.getTime());
                   let last_ist = $("#ist").html().split('.');
                   last_ist = last_ist[last_ist.length - 2];
                   if (last_ist !== undefined) {
-                      console.log('Последняя запись в истории:', last_ist);
                       let clean_id = last_ist.match(/cat(\d+)/);
                       if (clean_id) {
                           clean_id = clean_id[1];
                       }
                       last_ist = last_ist.trim().replace(/(<([^>]+)>)/ig, '');
                       if (((last_ist.indexOf("Поднял") !== -1) || (last_ist.indexOf("Опустил") !== -1)) && ((last_ist.indexOf("кота") !== -1) || (last_ist.indexOf("кошку") !== -1))) { //Если есть "поднял(а)/опустил(а) кота/кошку"
-                          console.log('В последней записи найдено "Поднял/опустил", ID жертвы:', clean_id);
                           let hist_str = ' ' + ((globals.clean_underscore) ? last_ist.replace(/(Подняла*|Опустила*)/, '<u>$1</u>') : last_ist);
                           if (globals.clean_id) {
                               hist_str += ' (' + clean_id + ')';
@@ -1381,7 +1377,6 @@ input:checked + .cws-team {
                           if (globals.clean_title && titles[clean_id]) { //Поменять на должность
                               hist_str = hist_str.replace(/(кота|кошку)/g, title_convert(titles[clean_id]));
                           }
-                          console.log('Добавляем к истории чистки запись:', hist_str);
                           if ($("#location").html() != '[ Загружается… ]' && hist_str !== undefined) { //ок?
                               $('#cleaner_block').append(hist_str);
                               window.localStorage.setItem('cws_cleaner_history_log', $('#cleaner_block').html());
