@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.57';
+  const version = '1.58';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -279,15 +279,15 @@
     return (num < 10) ? '0' + num : num;
   }
   const pageurl = window.location.href;
-  const isCW3 = (/^https:\/\/\w?\.?catwar.(su|net)\/cw3(?!(\/kns|\/jagd))/.test(pageurl));
-  const isSite = !(/^https:\/\/\w?\.?catwar.(su|net)\/cw3(\/kns|\/jagd)?.*/.test(pageurl));
-  const isDM = (/^https:\/\/\w?\.?catwar.(su|net)\/ls/.test(pageurl));
-  const isHunt = (/^https:\/\/\w?\.?catwar.(su|net)\/cw3\/jagd/.test(pageurl));
-  const isSett = (/^https:\/\/\w?\.?catwar.(su|net)\/settings/.test(pageurl));
-  const isMyCat = (/^https:\/\/\w?\.?catwar.(su|net)\/$/.test(pageurl));
-  const isBlog = (/^https:\/\/\w?\.?catwar.(su|net)\/blog\d+/.test(pageurl));
-  const isCUMoves = (/^https:\/\/\w?\.?catwar.(su|net)\/moves$/.test(pageurl));
-  const isProfile = (/^https:\/\/\w?\.?catwar.(su|net)\/cat(\d+|\/)/.test(pageurl));
+  const isCW3 = (/^https:\/\/\w*\.?catwar.(su|net)\/cw3(?!(\/kns|\/jagd))/.test(pageurl));
+  const isSite = !(/^https:\/\/\w*\.?catwar.(su|net)\/cw3(\/kns|\/jagd)?.*/.test(pageurl));
+  const isDM = (/^https:\/\/\w*\.?catwar.(su|net)\/ls/.test(pageurl));
+  const isHunt = (/^https:\/\/\w*\.?catwar.(su|net)\/cw3\/jagd/.test(pageurl));
+  const isSett = (/^https:\/\/\w*\.?catwar.(su|net)\/settings/.test(pageurl));
+  const isMyCat = (/^https:\/\/\w*\.?catwar.(su|net)\/$/.test(pageurl));
+  const isBlog = (/^https:\/\/\w*\.?catwar.(su|net)\/blog\d+/.test(pageurl));
+  const isCUMoves = (/^https:\/\/\w*\.?catwar.(su|net)\/moves$/.test(pageurl));
+  const isProfile = (/^https:\/\/\w*\.?catwar.(su|net)\/cat(\d+|\/)/.test(pageurl));
 
   try {
     if (isCW3) cw3();
@@ -535,13 +535,14 @@
         let smellOtherActive = 0;
         let firstNote = "";
         let rang = true;
+        let nextSmellDate = 0;
 
         function smellTimerTick() {
-          let val = parseInt($('#cws_smell_timer').attr('value'));
-          if (val) {
+            if (nextSmellDate < 1) return;
             rang = false;
-            val--;
-            $('#cws_smell_timer').attr('value', val);
+            const now = new Date();
+            const diffMs = nextSmellDate - now; // difference in milliseconds
+            const val = Math.max(0, Math.floor(diffMs / 1000));
             let str = '';
             let hr = parseInt(val / 3600);
             let mi = parseInt((val - hr * 3600) / 60);
@@ -550,66 +551,84 @@
             str += (mi || hr) ? mi + ' мин ' : '';
             str += se + ' с';
             $('#cws_smell_timer').html(str);
-          }
-          else if (globals.on_smellTimerNotif && !rang) {
-            playAudio(sounds.action_notif, globals.sound_smellTimer);
-            rang = true;
-          }
+            if (diffMs < 1 && globals.on_smellTimerNotif && !rang) {
+                nextSmellDate = 0;
+                playAudio(sounds.action_notif, globals.sound_smellTimer);
+                rang = true;
+            }
         }
         setInterval(smellTimerTick, 1000);
-        //TODO: сделать так, чтоб таймер не запускался вообще, пока есть действие нюха, т.е. value != 0
-        let firstClick = setInterval(function () { //господи я ненавижу варовскую привычку сначала создавать элемент <!----> а потом вставлять в него данные
-          if ($('#smell_icon').length) {
+        let firstClick = setInterval(function () {
+          if ($('#smell .symbole').length) {
             firstNote = $('#error').html();
-            $('#smell_icon').click();
+            $('#smell .symbole').click();
             clearInterval(firstClick);
           }
         }, 500);
+          let hasSmell = $('#akten a[data-id=13], #dein a[data-id=14]').length;
+          let hasAny = $('#block_deys').length;
+          let isActive = false;
+          if (!hasSmell && hasAny) isActive = false;
+          if (hasSmell && hasAny) isActive = true;
+          if (!hasAny) isActive = undefined;
+          let lastState = isActive;
+          const smell_deys_observer = new MutationObserver(function(mutations) {
+              let hasSmell = $('#akten a[data-id=13], #dein a[data-id=14]').length;
+              let hasAny = $('#block_deys').length;
+              let isActive = false;
+              if (!hasSmell && hasAny) isActive = false;
+              if (hasSmell && hasAny) isActive = true;
+              if (!hasAny) isActive = undefined;
+              if (lastState === isActive) return;
+              if (isActive !== undefined) {
+                  if (isActive) { // Нюх появился
+                      nextSmellDate = 0;
+                      smellTimerTick();
+                  } else { // Завершилось какое-то действие, и нюх недоступен
+                      // todo
+                  }
+              } else {
+                  // нажато действие нами или с нами, или нас подняли
+                  let lastAction = $("#ist").text().split('.');
+                  lastAction = (lastAction[lastAction.length - 2] || '').trim();
+                  console.log('last action', lastAction);
+                  if (lastAction.indexOf('Принюхал') === 0 || lastAction.indexOf('Обнюхал') === 0) { // нажали на нюх
+                      const smell_timer = {"0": 3600,"1": 3600,"2": 3600,"3": 3600,"4": 1800,"5": 1200,"6": 900,"7": 720,"8": 600,"9": 0};
+                      const now = new Date();
+                      let smell_lv = $('#smell .level').text();
+                      nextSmellDate = new Date(now.getTime() + smell_timer[smell_lv] * 1000);
+                      smellTimerTick();
+                  }
+              }
+              lastState = isActive;
+          });
+          smell_deys_observer.observe(document.getElementById('block_deys'), { subtree: true, characterData: true, childList: true });
 
-        $("body").on('DOMNodeInserted', '#dein', 'a[data-id=14]', function () {
-          let isActive = $('#dein a[data-id=14]').length;
-          if (!smellOtherActive && isActive) { //Отменено действие нюха
-            $('#cws_smell_timer').attr('value', 0);
-            $('#cws_smell_timer').html('0 с');
-          }
-          smellOtherActive = isActive;
-        });
-        const smell_timer = {"0": 3600,"1": 3600,"2": 3600,"3": 3600,"4": 1800,"5": 1200,"6": 900,"7": 720,"8": 600,"9": 0};
-        $("body").on('DOMNodeRemoved', '#dein', 'a[data-id=14]', function () {
-          let isActive = $('#dein a[data-id=14]').length;
-          if (smellOtherActive && !isActive) { //Нажато действие нюха
-            let smell_lv = $('#smell b').text(),
-                smell_time = smell_timer[smell_lv],
-                str = '',
-                mi = smell_time / 60,
-                se = smell_time - mi * 60;
-            str += (mi) ? mi + ' мин ' : '';
-            str += se + ' с';
-            $('#cws_smell_timer').attr('value', smell_time);
-            $('#cws_smell_timer').html(str);
-          }
-          smellOtherActive = isActive;
-        });
 
-        $("body").on('DOMSubtreeModified', '#error', function () {
-          let html = $(this).html();
-          if (html && html.indexOf('Следующее обнюхивание') !== -1) {
-            let text = html.replace('Следующее обнюхивание будет доступно через ', '');
-            let smellMin = (text.match(/(\d+) мин/g) == null) ? 0 : parseInt(text.match(/(\d+) мин/g)[0].replace(/\D/g, ''));
-            let smellSec = parseInt(text.match(/(\d+) с/g)[0].replace(/\D/g, ''));
-            let totalSec = smellMin * 60 + smellSec;
-            $('#cws_smell_timer').attr('value', totalSec);
-            $('#cws_smell_timer').html(smellMin + ' мин ' + smellSec + ' с');
-            if (firstNote !== "") { //Чтоб не перекрывало уведомления о ранах, голоде и т.д.
-              $('#error').html(firstNote);
-              firstNote = "";
-            }
-          }
-          else if (html.indexOf('Час уже прошёл') !== -1 && firstNote !== "") {
-            $('#error').html(firstNote);
-            firstNote = "";
-          }
-        });
+          const smell_observer = new MutationObserver(function(mutations) {
+              mutations.forEach(function(mutationRecord) {
+                  if (mutationRecord.type === "childList") {
+                      let html = $("#error").text();
+                      if (html !== undefined && html.indexOf('Следующее обнюхивание') !== -1) {
+                          let text = html.replace('Следующее обнюхивание будет доступно через ', '');
+                          let smellMin = (text.match(/(\d+) мин/g) == null) ? 0 : parseInt(text.match(/(\d+) мин/g)[0].replace(/\D/g, ''));
+                          let smellSec = parseInt(text.match(/(\d+) с/g)[0].replace(/\D/g, ''));
+                          let totalSec = smellMin * 60 + smellSec;
+                          const now = new Date();
+                          nextSmellDate = new Date(now.getTime() + totalSec * 1000);
+                          $('#cws_smell_timer').html(smellMin + ' мин ' + smellSec + ' с');
+                          if (firstNote !== "") { //Чтоб не перекрывало уведомления о ранах, голоде и т.д.
+                              $('#error').html(firstNote);
+                              firstNote = "";
+                          }
+                      } else if (html.indexOf('Час уже прошёл') !== -1 && firstNote !== "") {
+                          $('#error').html(firstNote);
+                          firstNote = "";
+                      }
+                  }
+              });
+          });
+          smell_observer.observe(document.getElementById('error'), { subtree: true, characterData: true, childList: true });
       });
     }
     if (globals.on_oldDialogue) {
