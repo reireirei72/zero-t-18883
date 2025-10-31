@@ -280,7 +280,6 @@
   }
   const pageurl = window.location.href;
   const isCW3 = (/^https:\/\/\w*\.?catwar.(su|net)\/cw3(?!(\/kns|\/jagd))/.test(pageurl));
-  const isSite = !(/^https:\/\/\w*\.?catwar.(su|net)\/cw3(\/kns|\/jagd)?.*/.test(pageurl));
   const isDM = (/^https:\/\/\w*\.?catwar.(su|net)\/ls/.test(pageurl));
   const isHunt = (/^https:\/\/\w*\.?catwar.(su|net)\/cw3\/jagd/.test(pageurl));
   const isSett = (/^https:\/\/\w*\.?catwar.(su|net)\/settings/.test(pageurl));
@@ -291,7 +290,6 @@
 
   try {
     if (isCW3) cw3();
-    if (isSite) site();
     if (isDM) dm();
     if (isSett) sett();
     if (isHunt) hunt();
