@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.57
+// @version      1.59
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.58';
+  const version = '1.59';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -52,7 +52,6 @@
 , 'on_cuMovesNote' : true // Окно заметок для ВТ
 , 'on_settLink' : true // Ссылка на настройки в игровой
 , 'on_extraInfo' : false // Доп. инфо о котиках
-, 'on_deletionWarning' : false // Предупреждение об удалении
 , 'on_historyCleanWarning' : false // Предупреждение о чистке истории TODO
 , 'on_localTimer' : 0 // Отображение системного времени в игровой (0 - выключен, 1 - локальное, 2 - московское)
  //Громкость звуков
@@ -316,44 +315,6 @@
                 padding: 9px;
               }`);
   }
-
-    function site() { // Весь сайт, кроме Игровой и её разделов
-        if (globals.on_deletionWarning) {
-            const el = $('.other_cats_list').first();
-            if (el.length) {
-                el.children().each(function (e) {
-                    const href = $(this).attr('href');
-                    const data = /login2\?id=(\d+)/.exec(href);
-                    let response = '[???]';
-                    if (data && data[1]) {
-                        response = '';
-                        const id = +data[1];
-                        let cat_data = getSettings(`reg_${id}`);
-                        if (cat_data) {
-                            cat_data = JSON.parse(cat_data);
-                            let date = new Date();
-                            date.setTime(date.getTime() + (date.getTimezoneOffset() + 180) * 60 * 1000);
-                            let diff = Math.floor(date.getTime() / 1000) - cat_data.regTime;
-                            diff = Math.floor(diff / 86400); // days alive
-                            let count = 45; // Время жизни
-                            if (diff > 365) {
-                                count = 120;
-                            }
-                            let lastOnline = new Date();
-                            lastOnline.setTime(cat_data.lastOnline * 1000);
-                            let inactive = Math.ceil((date - lastOnline) / (86400 * 1000));
-                            let ttl = count - inactive;
-                            if (ttl < 7) {
-                                response = `<span style='color:red;font-weight:bold;' title='Персонаж удалится через ${ttl} дней из-за незахода'>[!!!]</span>`;
-                            }
-                        }
-                    }
-                    const text = $(this).text();
-                    $(this).html(`${text} ${response}`);
-                });
-            }
-        }
-    }
   function cw3() { //Игровая
     if (globals.on_settLink) {
       $('.small').first().append(` | <a href="/settings">Настройки модов</a>`); //Настройки мода
@@ -1970,22 +1931,6 @@ ${globals.on_treeTechies?`<div><input id="on_treeTechies" type="checkbox" checke
           let id = $('#pr table tr:first-child td:last-child a').attr('href').replace('cat', '');
           setSettings('thine', id);
       });
-      if (globals.on_deletionWarning) {
-          const id = +($('#id_icon').parent().parent().children().last().text());
-          const moons = +($('#age_icon').parent().parent().children().last().text().replace(/[^\d\.]/ig, ''));
-          const age = Math.floor(moons * 4 * 86400 * 1000);
-          let date = new Date();
-          date.setTime(date.getTime() + (date.getTimezoneOffset() + 180) * 60 * 1000 - age - 86400 * 1000);
-          // Текущая дата по московскому времени минус возраст и минус дополнительные сутки из-за того, что регистрация в ночное время
-          // может калькулировать возраст по лунам на день позже
-          const dateNow = new Date();
-          dateNow.setTime(dateNow.getTime() + (dateNow.getTimezoneOffset() + 180) * 60 * 1000);
-          const obj = {};
-          setSettings(`reg_${id}`, JSON.stringify({
-              regTime: Math.floor(date.getTime() / 1000),
-              lastOnline: Math.floor(dateNow.getTime() / 1000)
-          }));
-      }
     if (!globals.charListArray || !globals.charListArray.length) { //Если массив ни разу не заполнялся
       $(document).ready(function () {
         let autoCCArr = [];
@@ -2318,11 +2263,11 @@ height: 2.3em;
         /*РЕКА*/
         if (blogID == 13664) { // Охрана границ
           let patr_time = 23,
-            doz_time = leadZero(date.getHours()),
             patr_date = new Date(date),
             doz_date = new Date(date);
           let hour = date.getHours(),
             minute = date.getMinutes();
+          let doz_time = leadZero(hour) + ':' + leadZero(minute);
           if (hour < 9) {
             patr_date.setDate(patr_date.getDate() - 1);
           } // yesterday
@@ -2345,7 +2290,28 @@ height: 2.3em;
             patr_time = 23;
           }
           const patr_date_str = patr_date.getFullYear() + '-' + leadZero(patr_date.getMonth() + 1) + '-' + leadZero(patr_date.getDate());
+          const doz_options = `<option value="Камышовые заросли">Камышовые заросли</option>
+<option value="Редколесье">Редколесье</option>
+<option value="Травянистый берег">Травянистый берег</option>
+<option value="Разрушенная ограда">Разрушенная ограда</option>
+<option value="Расколотое дерево">Расколотое дерево</option>
+<option value="Лесной ручеёк">Лесной ручеёк</option>
+<option value="Одинокий склон">Одинокий склон</option>
+<option value="Валежник">Валежник</option>
+<option value="Нагретые камни">Нагретые камни</option>
+<option value="Мшистые земли">Мшистые земли</option>
+<option value="Дубрава">Дубрава</option>
+<option value="Илистая тропа">Илистая тропа</option>
+<option value="Главный туннель Речного племени">Главный туннель Речного племени</option>
+<option value="1 маршрут">1 маршрут</option>
+<option value="2 маршрут">2 маршрут</option>
+<option value="3 маршрут">3 маршрут</option>
+<option value="4 маршрут">4 маршрут</option>`;
           $('#send_comment').append(`
+<hr>
+<b>Смотрим дозорящих</b><br><br>
+<button class="inp-button" id="r03_check_doz">Проверить, кто сейчас дозорит</button>
+<p id="r03_checked_doz">Пока что кнопочку не нажимали...</p>
 <hr>
 <h3>Автоматическое заполнение отчётов</h3>
 <hr>
@@ -2353,99 +2319,33 @@ ${my_id_div}
 <hr>
 <div class="cws_tabs">
   <ul class="cws_tabs_caption">
-    <li class="active">Дозор</li>
+    <li class="active">Начало дозора</li>
+    <li>Конец дозора</li>
     <li>Патруль</li>
   </ul>
 
-  <div class="cws_tabs_content active">
-    <div id="r03_doz_block">
-    <p class="view-title">Дозор</p>
+  <div id="r03_doz_block" class="cws_tabs_content active">
+    <p class="view-title">Начало дозора</p>
     <table>
-        <tr><td>Дата начала:</td><td><input type="date" class="cws-input" id="r03_doz_date" required value="${date_str}"></td></tr>
+        <tr><td>Дата начала:</td><td><input type="date" class="cws-input" id="r03_doz1_date" required value="${date_str}"></td></tr>
+        <tr><td>Время начала:</td><td><input type="time" class="cws-input" id="r03_doz1_time" required value="${doz_time}" step="60"></td><td></td></tr>
+        <tr><td>Место дозора:</td><td><select id="r03_doz1_place">${doz_options}</select></td><td></td></tr>
     </table>
-    <div><textarea id=r03_doz_text style="width: 95%;resize: none;" rows="11" placeholder="05+
-КЗ: Имя, имя.
-ТБ: имя;
-рл: имя
-ро: имя
-рд: имя
-лр: имя
-вл: имя
-дб: имя
-нк: имя
-ос: имя
-гт: имя
-01: имя
-2: имя
-3: имя
-04: имя"></textarea></div>
-    <button class="inp-button" id="r03_doz">Заполнить отчет</button>
-    </div>
-    <hr>
-    <div id="r03_doz_nar_block">
-    <p class="view-title">Исключения из дозора</p>
+    <div></div>
+    <button class="inp-button" id="r03_doz1">Заполнить отчет</button>
+  </div>
+
+  <div id="r03_doz_block" class="cws_tabs_content" style="display:none;">
+    <p class="view-title">Конец дозора</p>
     <table>
-        <tr><td>Дата начала:</td><td style="width:25px;"></td><td><input type="date" class="cws-input" id="r03_doz_nar_date" value="${date_str}"></td></tr>
-        <tr><td>Время начала:</td><td></td><td><input type="time" class="cws-input" id="r03_doz_nar_time" value="${doz_time}:00" step="3600"></td></tr>
-        <tr class="r03-doz-nar-free-wrap">
-          <td>Освобождён:</td>
-    <td></td>
-          <td>
-            <input type="text" class="cws-input r03-doz-nar-free" placeholder="Имя ИЛИ ID">
-            <button data-id="r03-doz-nar-free-wrap" class="inp-button add-field">+</button>
-          </td>
-        </tr>
-        <tr class="r03-doz-nar-wrap">
-          <td>Нарушение:</td>
-          <td></td>
-          <td>
-            <input type="text" class="cws-input r03-doz-nar-narname" placeholder="Имя ИЛИ ID">
-<select class="cws-input r03-doz-nar-narreas" style="width:185px;">
-<option>офф в дозоре</option>
-<option>отсутствие на месте дозора</option>
-<option>перепутано место дозора</option>
-<option>пропуск нарушителя</option>
-<option>долгое невыполнение переходов в активном дозоре</option>
-<option>уход с места дозора раньше времени</option>
-<option>тренировка во время дозора</option>
-<option>выполнение посторонних действий в активном дозоре</option>
-</select>
-            <button data-id="r03-doz-nar-wrap" class="inp-button add-field">+</button>
-          </td>
-        </tr>
+        <tr><td>Дата начала:</td><td><input type="date" class="cws-input" id="r03_doz2_date" required value="${date_str}"></td></tr>
+        <tr><td>Время начала:</td><td><input type="time" class="cws-input" id="r03_doz2_time" required value="${doz_time}" step="60"></td><td></td></tr>
+        <tr><td>Дата конца:</td><td><input type="date" class="cws-input" id="r03_doz2_date_end" required value="${date_str}"></td></tr>
+        <tr><td>Время конца:</td><td><input type="time" class="cws-input" id="r03_doz2_time_end" required value="${doz_time}" step="60"></td><td></td></tr>
+        <tr><td>Место дозора:</td><td><select id="r03_doz2_place">${doz_options}</select></td><td></td></tr>
     </table>
-    <button class="inp-button" id="r03_doz_nar">Заполнить отчет</button>
-    <template id="r03-doz-nar-free-wrap">
-      <tr class="r03-doz-nar-free-wrap">
-        <td></td>
-        <td><button data-id="r03-doz-nar-free-wrap" class="inp-button   del-field">&times;</button></td>
-        <td>
-          <input type="text" class="cws-input r03-doz-nar-free" placeholder="Имя ИЛИ ID">
-          <button data-id="r03-doz-nar-free-wrap" class="inp-button add-field">+</button>
-        </td>
-      </tr>
-    </template>
-    <template id="r03-doz-nar-wrap">
-      <tr class="r03-doz-nar-wrap">
-        <td></td>
-        <td><button data-id="r03-doz-nar-wrap" class="inp-button del-field">&times;</button></td>
-        <td>
-          <input type="text" class="cws-input r03-doz-nar-narname" placeholder="Имя ИЛИ ID">
-<select class="cws-input r03-doz-nar-narreas" style="width:185px;">
-<option>офф в дозоре</option>
-<option>отсутствие на месте дозора</option>
-<option>перепутано место дозора</option>
-<option>пропуск нарушителя</option>
-<option>долгое невыполнение переходов в активном дозоре</option>
-<option>уход с места дозора раньше времени</option>
-<option>тренировка во время дозора</option>
-<option>выполнение посторонних действий в активном дозоре</option>
-</select>
-          <button data-id="r03-doz-nar-wrap" class="inp-button add-field">+</button>
-        </td>
-      </tr>
-    </template>
-    </div>
+    <div></div>
+    <button class="inp-button" id="r03_doz2">Заполнить отчет</button>
   </div>
 
   <div id="r03_patr_block" class="cws_tabs_content" style="display:none;">
@@ -2468,6 +2368,45 @@ ${my_id_div}
     <button class="inp-button" id="r03_patr">Заполнить отчет</button>
   </div>
 </div>`);
+            $('#r03_check_doz').on('click', function() {
+                const authors = {};
+                $('.view-comment').each(function(e) {
+                    const author = $(this).find('.author').text();
+                    const text = $(this).find('.comment-text .parsed').text();
+                    const isDozStart = text.indexOf('Занятое место') !== -1;
+                    const isDozEnd = text.indexOf('Место дозора') !== -1;
+                    if (isDozStart) {
+                        const match = text.match(/Занятое место:\s*([А-яЁё\d ]+).*Участник/iu);
+                        if (match && match[1]) {
+                            let place = match[1].replace(';', '').trim();
+                            authors[author] = place;
+                        }
+                    } else if (isDozEnd) {
+                        authors[author] = null;
+                    }
+                });
+                const result = {};
+                for (let [key, value] of Object.entries(authors)) {
+                    if (value === null) continue;
+                    value = value.toLowerCase();
+                    if (!result[value]) result[value] = [];
+                    result[value].push(key);
+                }
+                for (const value in result) {
+                    result[value] = result[value].join(', ');
+                }
+                const places = ['Камышовые заросли', 'Редколесье', 'Травянистый берег', 'Разрушенная ограда', 'Расколотое дерево', 'Лесной ручеёк', 'Одинокий склон', 'Валежник', 'Нагретые камни',
+                                'Мшистые земли', 'Дубрава', 'Илистая тропа', 'Главный туннель Речного племени', '1 маршрут', '2 маршрут', '3 маршрут', '4 маршрут'];
+                let text = '';
+                for (const place of places) {
+                    if (result[place.toLowerCase()]) {
+                        if (text) text += '<br>';
+                        text += place + ' - ' + result[place.toLowerCase()];
+                    }
+                }
+                if (!text) text = 'Никто не дозорит!';
+            $('#r03_checked_doz').html(text);
+            });
           $('#r03_patr').on('click', function (e) {
             let myid = parseInt($('#cws_blog_myid').val()); // id пишущего отчет
             rememberMyID(myid);
@@ -2494,11 +2433,7 @@ ${my_id_div}
             arr_members_ally.forEach((element) => convertNames(element, id_arr_ally));
             let date = splitDateStr($("#r03_patr_date").val()); // дата
             let hr = parseInt($("#r03_patr_time").val().split(":")[0]);
-            let txt = `[u][b]Патруль[/b][/u]
-[b]Дата и время:[/b] ${date.day}.${date.month}, ${leadZero(hr)}:00;
-[b]Маршрут:[/b] ${mar};
-[b]Ведущий:[/b] ${myid};
-[b]Участники:[/b] ${id_arr.join(', ')};`;
+            let txt = `[u][b]Патруль[/b][/u]\n[b]Дата и время:[/b] ${date.day}.${date.month}, ${leadZero(hr)}:00;\n[b]Маршрут:[/b] ${mar};\n[b]Ведущий:[/b] ${myid};\n[b]Участники:[/b] ${id_arr.join(', ')};`;
             if (id_arr_ally.length > 0) {
                 txt += `\n[b]Север:[/b] ${id_arr_ally.join(', ')};`
             }
@@ -2511,94 +2446,48 @@ ${my_id_div}
             }
             $('#comment').val(val + txt).scrollintoview();
           });
-          $('#r03_doz').on('click', function (e) {
-            let date = splitDateStr($("#r03_doz_date").val()),
-              txt = '[u][b]Дозор[/b][/u]\n[b]Дата:[/b] ' + date.day + '.' + date.month + ';\n[b]Время:[/b] ',
-              my_id = parseInt($('#cws_blog_myid').val()),
-              som_text = $('#r03_doz_text').val().trim(),
-              name_error = false,
-              locations = [],
-              time,
-              nextTime,
-              sign,
-              found,
-              pattern,
-              places = {
-                "КЗ": "Камышовые заросли",
-                "ТБ": "Травянистый берег",
-                "РЛ": "Редколесье",
-                "РО": "Разрушенная ограда",
-                "РД": "Расколотое дерево",
-                "ЛР": "Лесной ручеёк",
-                "ВЛ": "Валежник",
-                "ИТ": "Илистая тропа",
-                "ОС": "Одинокий склон",
-                "НК": "Нагретые камни",
-                "ДБ": "Дубрава",
-                "МЗ": "Мшистые земли",
-                "ГТ": "Главный туннель",
-                "01": "Активный 1",
-                "02": "Активный 2",
-                "03": "Активный 3",
-                "04": "Активный 4"
-              };
-            rememberMyID(my_id);
-            time = som_text.match(/^(\d{2}) *([\+-])/i);
-            if (time === null) {
+          $('#r03_doz1_place, #r03_doz2_place').on('change', function (e) {
+              const val = $(this).val();
+              const n = $(this).attr('id').indexOf('doz1') !== -1 ? 2 : 1;
+              $(`#r03_doz${n}_place > option[value="${val}"`).prop('selected', true);
+          });
+          $('#r03_doz1_time, #r03_doz2_time').on('change', function (e) {
+              const val = $(this).val();
+              const n = $(this).attr('id').indexOf('doz1') !== -1 ? 2 : 1;
+              $(`#r03_doz${n}_time`).val(val);
+          });
+          $('#r03_doz1_date, #r03_doz2_date').on('change', function (e) {
+              const val = $(this).val();
+              const n = $(this).attr('id').indexOf('doz1') !== -1 ? 2 : 1;
+              $(`#r03_doz${n}_date`).val(val);
+          });
+          $('#r03_doz1').on('click', function (e) {
+              const my_id = parseInt($('#cws_blog_myid').val());
+              rememberMyID(my_id);
+              let date = splitDateStr($("#r03_doz1_date").val());
+              let text = `[u][b]Дозор[/b][/u]\n[b]Дата и время начала:[/b] ${date.day}.${date.month}, ` + $("#r03_doz1_time").val() + `;`;
+              text += `\n[b]Занятое место:[/b] ` + $("#r03_doz1_place").val() + `;`;
+              text += `\n[b]Участник:[/b] ${masking(my_id, '[cat%ID%] [%ID%]')}.`;
               let val = $('#comment').val();
               if (val) {
-                val += "\n\n";
+                  val += "\n\n";
               }
-              $('#comment').val(val + '! ! ! Отчёт обязательно должен начинаться с двух цифр (час сбора) и знака (+ или -).');
-              return;
-            }
-            sign = time[2];
-            time = parseInt(time[1]);
-            nextTime = (time == 23) ? 0 : time + 1;
-            txt += leadZero(time) + ':00-' + leadZero(nextTime) + ':00;\n';
-            my_id = (isNaN(my_id)) ? 'Некорректный ID собирающего' : masking(my_id, '[cat%ID%] [%ID%]');
-            txt += '[b]Собирающий:[/b] ' + my_id + '.\n[b][u]Участники[/u][/b]\n';
-            if (sign == '+') {
-              som_text = som_text.replace(/^(\d{2}) *([\+-])[^\n]*\n|\. *$|; *$|, *$/ig, '');
-              som_text = som_text.replace(/\. *\n|, *\n|; *\n/ig, '\n');
-              som_text = som_text.replace(/\n(\d):/ig, '\n0$1:');
-              som_text = som_text.replace(/^(\d):/ig, '0$1:');
-              $.each(places, function (short_name, full_name) {
-                pattern = new RegExp('\n*' + short_name + ': *([^\n]+)', "i");
-                if (found = som_text.match(pattern)) {
-                  let name_arr = found[1].split(','),
-                    id_arr = [],
-                    tmp_arr = [];
-                  $.each(name_arr, function (index, name) {
-                    let insideMatch = name.match(/\(.*\)/);
-                    let postfix = insideMatch ? ' ' + insideMatch[0].trim() : "";
-                    name = name.replace(/\(.*\)/, "").trim();
-                    let tmp = nameToID(name);
-                    if (parseInt(tmp)) {
-                      //id_arr.push(masking(tmp, '[cat%ID%] [%ID%]'));
-                      id_arr.push(name + ' [' + tmp + ']' + postfix);
-                    }
-                    else {
-                      id_arr.push(name_arr[index] + ' [?]');
-                      name_error = true;
-                    }
-                  });
-                  locations.push('[b]' + full_name + ':[/b] ' + id_arr.join(', '));
-                }
-              });
-              txt += locations.join(';\n') + '.';
-            }
-            else {
-              txt += 'Нет.'
-            }
-            if (name_error) {
-              txt += `\n! ! ! В отчёте какая-то ошибка с именем (одно из имён не было найдено). Проверьте его перед тем, как отправить.`
-            }
-            let val = $('#comment').val();
-            if (val) {
-              val += "\n\n";
-            }
-            $('#comment').val(val + txt).scrollintoview();
+            $('#comment').val(val + text).scrollintoview();
+          });
+          $('#r03_doz2').on('click', function (e) {
+              const my_id = parseInt($('#cws_blog_myid').val());
+              rememberMyID(my_id);
+              let date = splitDateStr($("#r03_doz2_date").val());
+              let date2 = splitDateStr($("#r03_doz2_date_end").val());
+              let text = `[u][b]Дозор[/b][/u]\n[b]Дата и время начала:[/b] ${date.day}.${date.month}, ` + $("#r03_doz2_time").val() + `;`;
+              text += `\n[b]Дата и время конца:[/b] ${date2.day}.${date2.month}, ` + $("#r03_doz2_time").val() + `;`;
+              text += `\n[b]Место дозора:[/b] ` + $("#r03_doz2_place").val() + `;`;
+              text += `\n[b]Участник:[/b] ${masking(my_id, '[cat%ID%] [%ID%]')}.`;
+              let val = $('#comment').val();
+              if (val) {
+                  val += "\n\n";
+              }
+            $('#comment').val(val + text).scrollintoview();
           });
           $('#r03_doz_nar').on('click', function (e) {
             let date = splitDateStr($("#r03_doz_nar_date").val()),
@@ -3357,7 +3246,6 @@ margin-top:5px;
     <div><input class="cwa-chk" id="on_idCatMouth" type="checkbox"${globals.on_idCatMouth?' checked':''}><label for="on_idCatMouth">Включить отображение ID котов, находящихся во рту</label></div>
     <div><input class="cwa-chk" id="on_idItemMouth" type="checkbox"${globals.on_idItemMouth?' checked':''}><label for="on_idItemMouth">Включить отображение ID (неуникальных) и названий предметов, находящихся во рту</label></div>
     <div><input class="cwa-chk" id="on_paramInfo" type="checkbox"${globals.on_paramInfo?' checked':''}><label for="on_paramInfo">Информация о параметре при нажатии на иконку</label></div>
-    <div><input class="cwa-chk" id="on_deletionWarning" type="checkbox"${globals.on_deletionWarning?' checked':''}><label for="on_deletionWarning">Информация о дате удаления персонажей в левом верхнем углу</label>
     <br><small>Учитывает только возраст персонажа и <u>дату последнего Вашего захода этим персонажем на этом устройстве на страницу "Мой кот"</u>. Не считает летний период, поэтому летом персонажам возрастом меньше года будет спамить
     про удаление, если заход был почти 45 дней назад. Не считает, если Вы зашли на персонажа с телефона, а сейчас сидите с компьютера.</small></div>
     <div><input class="cwa-chk" id="on_cuMovesNote" type="checkbox"${globals.on_cuMovesNote?' checked':''}><label for="on_cuMovesNote">[ВТ] Заметки на странице добавления/удаления переходов</label></div>
