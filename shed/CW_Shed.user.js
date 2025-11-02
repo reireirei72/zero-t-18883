@@ -2480,7 +2480,7 @@ ${my_id_div}
               let date = splitDateStr($("#r03_doz2_date").val());
               let date2 = splitDateStr($("#r03_doz2_date_end").val());
               let text = `[u][b]Дозор[/b][/u]\n[b]Дата и время начала:[/b] ${date.day}.${date.month}, ` + $("#r03_doz2_time").val() + `;`;
-              text += `\n[b]Дата и время конца:[/b] ${date2.day}.${date2.month}, ` + $("#r03_doz2_time").val() + `;`;
+              text += `\n[b]Дата и время конца:[/b] ${date2.day}.${date2.month}, ` + $("#r03_doz2_time_end").val() + `;`;
               text += `\n[b]Место дозора:[/b] ` + $("#r03_doz2_place").val() + `;`;
               text += `\n[b]Участник:[/b] ${masking(my_id, '[cat%ID%] [%ID%]')}.`;
               let val = $('#comment').val();
