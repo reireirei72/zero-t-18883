@@ -15,6 +15,7 @@ function dt_format(date) {
 	+ ' ' + addLeadZero(date.getHours())
 	+ ':00'; 
 }
+const escapePoints = (points) => ('' + points).replace('.', ',');
 
 $(document).ready(function() {
 	var date = new Date();
@@ -70,6 +71,7 @@ $(document).ready(function() {
 				"name" : {},
 			},
 			"patr" : [],
+			"patr_leaders" : [],
 			"doz" : [],
 			"totals" : [],
 			"doz_leaver" : []
@@ -310,7 +312,7 @@ $(document).ready(function() {
 					return error(`Нет двоеточия на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}`);
 				}
 				let leader = string.replace(/\D+/g, '');
-				count.patr.push({
+				count.patr_leaders.push({
 					year: pd_date.getFullYear(),
 					month: pd_date.getMonth(),
 					day: pd_date.getDate(),
@@ -472,34 +474,42 @@ $(document).ready(function() {
 				}
 			}
 		}
-		for (const patr_i in count.patr) {
-			const patr = count.patr[patr_i];
-			if (!count_out[patr.cat]) {
-				count_out[patr.cat] = {patr: 0, doz: 0};
-			}
-			count_out[patr.cat].patr++;
-			if (count.medals.mzauvzhp[patr.cat]) {
-				const mzcat = count.medals.mzauvzhp[patr.cat];
-				if (mzcat.from_year > patr.year
-					|| mzcat.from_year == patr.year && mzcat.from_month > patr.month
-					|| mzcat.from_year == patr.year && mzcat.from_month == patr.month && mzcat.from_day > patr.day) {
-					count.medals.mzauvzhp[patr.cat].start_patr--;
+		const tmp_patr = {
+			"normal": count.patr,
+			"leaders": count.patr_leaders,
+		};
+		for (const key in tmp_patr) {
+			const now = tmp_patr[key];
+			const points = key == "normal" ? 1 : 2; // Для ведущих +2 вместо +1
+			for (const patr_i in now) {
+				const patr = now[patr_i];
+				if (!count_out[patr.cat]) {
+					count_out[patr.cat] = {patr: 0, doz: 0};
 				}
-			}
-			if (count.medals.di[patr.cat]) {
-				const mzcat = count.medals.di[patr.cat];
-				if (mzcat.from_year > patr.year
-					|| mzcat.from_year == patr.year && mzcat.from_month > patr.month
-					|| mzcat.from_year == patr.year && mzcat.from_month == patr.month && mzcat.from_day > patr.day) {
-					count.medals.di[patr.cat].start_patr--;
+				count_out[patr.cat].patr += points;
+				if (count.medals.mzauvzhp[patr.cat]) {
+					const mzcat = count.medals.mzauvzhp[patr.cat];
+					if (mzcat.from_year > patr.year
+						|| mzcat.from_year == patr.year && mzcat.from_month > patr.month
+						|| mzcat.from_year == patr.year && mzcat.from_month == patr.month && mzcat.from_day > patr.day) {
+						count.medals.mzauvzhp[patr.cat].start_patr -= points;
+					}
 				}
-			}
-			if (count.medals.name[patr.cat]) {
-				const mzcat = count.medals.name[patr.cat];
-				if (mzcat.from_year > patr.year
-					|| mzcat.from_year == patr.year && mzcat.from_month > patr.month
-					|| mzcat.from_year == patr.year && mzcat.from_month == patr.month && mzcat.from_day > patr.day) {
-					count.medals.name[patr.cat].start_patr--;
+				if (count.medals.di[patr.cat]) {
+					const mzcat = count.medals.di[patr.cat];
+					if (mzcat.from_year > patr.year
+						|| mzcat.from_year == patr.year && mzcat.from_month > patr.month
+						|| mzcat.from_year == patr.year && mzcat.from_month == patr.month && mzcat.from_day > patr.day) {
+						count.medals.di[patr.cat].start_patr -= points;
+					}
+				}
+				if (count.medals.name[patr.cat]) {
+					const mzcat = count.medals.name[patr.cat];
+					if (mzcat.from_year > patr.year
+						|| mzcat.from_year == patr.year && mzcat.from_month > patr.month
+						|| mzcat.from_year == patr.year && mzcat.from_month == patr.month && mzcat.from_day > patr.day) {
+						count.medals.name[patr.cat].start_patr -= points;
+					}
 				}
 			}
 		}
@@ -563,7 +573,8 @@ $(document).ready(function() {
 			val += 'Идущие на медаль за активное участие в жизни племени:\n';
 			for (const cat in count.medals.mzauvzhp) {
 				const cur = count.medals.mzauvzhp[cat];
-				val += `${addLeadZero(cur.from_day)}.${addLeadZero(cur.from_month+1)}-${addLeadZero(cur.to_day)}.${addLeadZero(cur.to_month+1)}	${cat}	${cur.start_patr}	${cur.start_doz}\n`;
+				// val += `${addLeadZero(cur.from_day)}.${addLeadZero(cur.from_month+1)}-${addLeadZero(cur.to_day)}.${addLeadZero(cur.to_month+1)}	${cat}	${cur.start_patr}	${cur.start_doz}\n`;
+				val += `${cat}	${escapePoints(cur.start_patr)}	${escapePoints(cur.start_doz)}\n`;
 			}
 			val += '\n';
 		}
@@ -571,7 +582,7 @@ $(document).ready(function() {
 		let best_doz = 0, best_patr = 0, second_best_doz = 0, second_best_patr = 0;
 		for (const cat in count_out) {
 			const this_cat = count_out[cat];
-			val += `${cat}	${this_cat.patr}	${this_cat.doz}\n`;
+			val += `${cat}	${escapePoints(this_cat.patr)}	${escapePoints(this_cat.doz)}\n`;
 			if (this_cat.patr > best_patr) {
 				best_patr = this_cat.patr;
 			}
@@ -604,7 +615,6 @@ $(document).ready(function() {
 		val += `Дозорные:\n`;
 		val += `I: ${(format(best_doz_id, '[cat%ID%] [%ID%]')).join(', ')}\n`;
 		val += `II: ${(format(second_best_doz_id, '[cat%ID%] [%ID%]')).join(', ')}`;
-		val = val.replaceAll('.', ',');
 		$('#output').val(val);
 	});
 });
