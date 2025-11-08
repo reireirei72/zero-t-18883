@@ -13,8 +13,14 @@ function dt_format(date) {
 	return addLeadZero(date.getDate())
 	+ '.' + addLeadZero(date.getMonth()+1); 
 }
-function addCat(patr_arr, cat, date, type, mark_filled = false) {
-	const instance = _.find(patr_arr, {year: date.getFullYear(), month: date.getMonth(), day: date.getDate(), type: type});
+function addCat(patr_arr, cat, date, type, mar, mark_filled = false, is_leader = false) {
+	// if mar="общий" mar=1 && remove where mar=2
+	if (mar == "общий") {
+		const instance_to_remove = _.find(patr_arr, {year: date.getFullYear(), month: date.getMonth(), day: date.getDate(), type: type, mar: "2"});
+		delete instance_to_remove;
+		mar = "1";
+	}
+	const instance = _.find(patr_arr, {year: date.getFullYear(), month: date.getMonth(), day: date.getDate(), type: type, mar: mar});
 	const date_str = `${addLeadZero(date.getDate())}.${addLeadZero(date.getMonth() + 1)}.${date.getFullYear()} (${type})`;
 	let entry = cat.trim().match(/[А-яЁё ]+ \[(\d+)\] \(([\d\.,]+)\)/i);
 	if (!entry) {
@@ -25,13 +31,17 @@ function addCat(patr_arr, cat, date, type, mark_filled = false) {
 		herbs: +(entry[2].replace(",", "."))
 	};
 	if (!instance) {
-		error(`Попытался запихнуть ${cat.id} в патруль ${date_str}, но подходящий патруль не был найден. Некорректная дата комментария, наверное слишком поздно или слишком рано отпись.`);
+		error(`Попытался запихнуть ${cat.id} в патруль ${date_str} (маршрут ${mar}), но подходящий патруль не был найден. Некорректная дата комментария, наверное слишком поздно или слишком рано отпись.`);
 	} else if (instance.cats_filled) {
-		error(`Попытался запихнуть ${cat.id} в патруль ${date_str}, но на этот патруль коты уже заполнялись. Где-то подвох (видимо, косяк с датой).`);
+		error(`Попытался запихнуть ${cat.id} в патруль ${date_str} (маршрут ${mar}), но на этот патруль коты уже заполнялись. Где-то подвох (видимо, косяк с датой).`);
 	} else if (_.find(instance.cats, {id: cat.id})) {
 		error(`Попытался запихнуть ${cat.id} в патруль ${date_str}, но он уже в нём состоит.`);
 	} else {
-		instance.cats.push(cat);
+		if (is_leader) {
+			instance.leader = cat;
+		} else {
+			instance.cats.push(cat);
+		}
 		if (mark_filled) {
 			instance.cats_filled = true;
 		}
@@ -90,7 +100,19 @@ $(document).ready(function() {
 				day: lastWeek.getDate(),
 				hour: lastWeek.getHours(),
 				type: hours_assoc[cur],
+				mar: "1",
 				cats: [],
+				leader: 0,
+				cats_filled: false,
+			}, {
+				year: lastWeek.getFullYear(),
+				month: lastWeek.getMonth(),
+				day: lastWeek.getDate(),
+				hour: lastWeek.getHours(),
+				type: hours_assoc[cur],
+				mar: "2",
+				cats: [],
+				leader: 0,
 				cats_filled: false,
 			});
 			if (cur == 11) {
@@ -103,7 +125,7 @@ $(document).ready(function() {
 		}
 		lastWeek.setDate(lastWeek.getDate() - 7);
 		lastWeek.setHours(11);
-		var comments = $('#comments').val().split('\n'), patr_date = new Date(), patr_type, comment_num;
+		var comments = $('#comments').val().split('\n'), patr_date = new Date(), patr_type, comment_num, mar;
 		for (const string_i in comments) {
 			var string = comments[string_i];
 			if (!string.length
@@ -160,9 +182,15 @@ $(document).ready(function() {
 					const year = +((re[3].length == 2) ? "20" + re[3] : re[3]);
 					patr_date.setFullYear(year);
 				}
+			} else if (/^Маршрут/u.test(string)) {
+				let re = string.match(/^Маршрут:\s*(1|2|общий)/iu);
+				if (!re || !re[1]) {
+					return error(`Что-то не так с маршрутом травника в комменте #${comment_num}. Строчка выглядит как "${string}".`);
+				}
+				mar = re[1].trim().toLowerCase();
 			} else if (/^Ведущий/u.test(string)) {
 				let leader = string.replace(String.fromCharCode(173), "").trim().split(':')[1];
-				const haveErr = addCat(patr, leader, patr_date, patr_type);
+				const haveErr = addCat(patr, leader, patr_date, patr_type, mar, false, true);
 				if (haveErr) {
 					return error(`Ошибка в ведущем на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Регулярочка под "Имя [айди] (травы)" не сработала.`);
 				}
@@ -170,7 +198,7 @@ $(document).ready(function() {
 				let cats = string.replace(String.fromCharCode(173), "").replace(/\((\d+),(\d+)\)/g, '($1.$2)').trim().split(',');
 				for (const i in cats) {
 					const cat = cats[i];
-					const haveErr = addCat(patr, cat, patr_date, patr_type, (cats.length == +i + 1));
+					const haveErr = addCat(patr, cat, patr_date, patr_type, mar, (cats.length == +i + 1));
 					if (haveErr) {
 						return error(`Ошибка в участнике на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Регулярочка под "Имя [айди] (травы)" не сработала.`);
 					}
@@ -182,21 +210,21 @@ $(document).ready(function() {
 			const cur = patr[i];
 			if (cur.cats.length == 0) {
 				const date = new Date(cur.year, cur.month, cur.day)
-				missing.push({date: dt_format(date), type: cur.type})
+				missing.push({date: dt_format(date), type: cur.type, mar: cur.mar})
 			}
 		}
 		if (missing.length) {
 			error('Не отписаны/не собраны патрули:');
 			for (const i in missing) {
 				const cur = missing[i];
-				let str = `${cur.date} (${cur.type})`;
+				let str = `${cur.date} (${cur.type}) - ${cur.mar} маршрут`;
 				error(str);
 			}
 		}
 		let count = [];
 		for (const i in patr) {
 			const cur = patr[i];
-			const points = 1;// (cur.type == 'травник') ? 1.5 : 1;
+			const points = 1; // (cur.type == 'травник') ? 1.5 : 1;
 			for (const c_i in cur.cats) {
 				const now = cur.cats[c_i];
 				const instance = _.find(count, {id: now.id});
@@ -207,6 +235,15 @@ $(document).ready(function() {
 					instance.count++;
 				}
 			}
+			if (!cur.leader) continue;
+			const instance = _.find(count, {id: cur.leader.id});
+			if (!instance) {
+				count.push({id: cur.leader.id, points: points * 1.5, count: 1});
+			} else {
+				instance.points += points * 1.5;
+				instance.count++;
+			}
+
 		}
 		count.sort(function(a, b) {return b.points - a.points});
 
@@ -248,6 +285,14 @@ $(document).ready(function() {
 					instance.herbs += now.herbs;
 				}
 			}
+			if (!cur.leader) continue;
+			const instance = _.find(count, {id: cur.leader.id});
+			if (!instance) {
+				count.push({id: cur.leader.id, herbs: cur.leader.herbs});
+			} else {
+				instance.herbs += cur.leader.herbs;
+			}
+
 		}
 		count.sort(function(a, b) {return b.herbs - a.herbs});
 		val += `\n\nПодсчёт трав [${addLeadZero(date.getDate())}.${addLeadZero(date.getMonth()+1)}]:\n`;
