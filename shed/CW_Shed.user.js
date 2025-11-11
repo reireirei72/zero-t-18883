@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.59
+// @version      1.60
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.59';
+  const version = '1.60';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -2262,33 +2262,34 @@ height: 2.3em;
 }`);
         /*РЕКА*/
         if (blogID == 13664) { // Охрана границ
-          let patr_time = 23,
+          let patr_time = 9,
             patr_date = new Date(date),
             doz_date = new Date(date);
           let hour = date.getHours(),
             minute = date.getMinutes();
           let doz_time = leadZero(hour) + ':' + leadZero(minute);
-          if (hour < 9) {
+          if (hour < 8 || hour == 8 && minute < 55) {
             patr_date.setDate(patr_date.getDate() - 1);
           } // yesterday
-          if (hour >= 9) {
+          if (hour >= 9 || hour == 8 && minute >= 55) {
             patr_time = 9;
           }
-          if (hour >= 12) {
-            patr_time = 12;
+          if (hour >= 11 || hour == 10 && minute >= 55) {
+            patr_time = 11;
           }
-          if (hour >= 15) {
+          if (hour >= 15 || hour == 14 && minute >= 55) {
             patr_time = 15;
           }
-          if (hour >= 18) {
+          if (hour >= 18 || hour == 17 && minute >= 55) {
             patr_time = 18;
           }
-          if (hour >= 21) {
+          if (hour >= 21 || hour == 20 && minute >= 55) {
             patr_time = 21;
           }
-          if (hour >= 23) {
+          if (hour >= 23 || hour == 22 && minute >= 55) {
             patr_time = 23;
           }
+          patr_time = leadZero(patr_time);
           const patr_date_str = patr_date.getFullYear() + '-' + leadZero(patr_date.getMonth() + 1) + '-' + leadZero(patr_date.getDate());
           const doz_options = `<option value="Камышовые заросли">Камышовые заросли</option>
 <option value="Редколесье">Редколесье</option>
@@ -2789,9 +2790,13 @@ ${my_id_div}
 <hr>
 <p class="view-title">Патруль</p>
 Вид:
-  <input type="radio" class="cws-input" name="r03_patr_mar" id="m_1" required-switch value="веточник" ${type=="веточник"?"checked":""}><label for="m_1">веточник</label>
-  <input type="radio" class="cws-input" name="r03_patr_mar" id="m_2" required-switch value="травник" ${type=="травник"?"checked":""}><label for="m_2">травник</label>
-  <input type="radio" class="cws-input" name="r03_patr_mar" id="m_3" required-switch value="мховник" ${type=="мховник"?"checked":""}><label for="m_3">мховник</label>
+  <input type="radio" class="cws-input" name="r03_patr_type" id="t_1" required-switch value="веточник" ${type=="веточник"?"checked":""}><label for="t_1">веточник</label>
+  <input type="radio" class="cws-input" name="r03_patr_type" id="t_2" required-switch value="травник" ${type=="травник"?"checked":""}><label for="t_2">травник</label>
+  <input type="radio" class="cws-input" name="r03_patr_type" id="t_3" required-switch value="мховник" ${type=="мховник"?"checked":""}><label for="t_3">мховник</label>
+<br>Маршрут:
+  <input type="radio" class="cws-input" name="r03_patr_mar" id="m_0" required-switch value="общий"><label for="m_0">общий</label>
+  <input type="radio" class="cws-input" name="r03_patr_mar" id="m_1" required-switch value="1"><label for="m_1">1</label>
+  <input type="radio" class="cws-input" name="r03_patr_mar" id="m_2" required-switch value="2"><label for="m_2">2</label>
 <table>
     <tr><td>Дата начала:</td><td><input type="date" class="cws-input" id="r03_patr_date" required value="${patr_date_str}"></td><td></td></tr>
 </table>
@@ -2807,8 +2812,8 @@ ${my_id_div}
             let leadherb = +(lead[1].replace(/\D+/ig, ''));
             rememberMyID(myid);
             myid = (isNaN(myid)) ? 'Некорректный ID ведущего' : masking(myid, `[cat%ID%] [%ID%] (${leadherb})`);
-            let mar = $('.cws-input[name=r03_patr_mar]:checked').val();
-            mar = mar || 'Не выбран вид';
+            let type = $('.cws-input[name=r03_patr_type]:checked').val() || 'Не выбран вид';
+            let mar = $('.cws-input[name=r03_patr_mar]:checked').val() || "Не выбран маршрут";
             let arr_members = strToArr($('#cws_patr_members').val());
             let id_arr = [];
             let not_found = [];
@@ -2828,7 +2833,8 @@ ${my_id_div}
             let date = splitDateStr($("#r03_patr_date").val());
             date.year = date.year.slice(2, 4);
             let txt = `[b]Дата:[/b] ${date.day}.${date.month}.${date.year};
-[b]Тип травника:[/b] ${mar};
+[b]Тип травника:[/b] ${type};
+[b]Маршрут:[/b] ${mar};
 [b]Ведущий:[/b] ${myid};
 [b]Участники:[/b] ${id_arr.length ? id_arr.join(', ') : "-"}.`;
             if (name_error) {
