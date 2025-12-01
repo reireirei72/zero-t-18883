@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.60
+// @version      1.61
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.60';
+  const version = '1.61';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -2374,35 +2374,56 @@ ${my_id_div}
                 $('.view-comment').each(function(e) {
                     const author = $(this).find('.author').text();
                     const text = $(this).find('.comment-text .parsed').text();
-                    const isDozStart = text.indexOf('Занятое место') !== -1;
-                    const isDozEnd = text.indexOf('Место дозора') !== -1;
+                    const textLower = text.toLowerCase();
+                    const isDozStart = textLower.indexOf('занятое место') !== -1 && textLower.indexOf('дата и время конца') === -1;
+                    const isDozEnd = textLower.indexOf('место дозора') !== -1 || textLower.indexOf('дата и время конца') !== -1;
                     if (isDozStart) {
-                        const match = text.match(/Занятое место:\s*([А-яЁё\d ]+).*Участник/iu);
-                        if (match && match[1]) {
-                            let place = match[1].replace(';', '').trim();
-                            authors[author] = place;
+                        const match = text.match(/Дата и время начала:\s*([\d\.:, ]+).*Занятое место:\s*([А-яЁё\d ]+).*Участник/iu);
+                        if (match && match[1] && match[2]) {
+                            const place = match[2].replace(';', '').trim();
+                            const date = match[1].trim();
+                            authors[author] = {place, date};
                         }
                     } else if (isDozEnd) {
                         authors[author] = null;
                     }
                 });
                 const result = {};
-                for (let [key, value] of Object.entries(authors)) {
-                    if (value === null) continue;
-                    value = value.toLowerCase();
-                    if (!result[value]) result[value] = [];
-                    result[value].push(key);
+
+                function normalizeDateTime(str) {
+                    const dateTimeRegex = /^(\d{1,2})\.(\d{1,2})(?:\.(\d{2}|\d{4}))?\s*(?:,\s*)?(\d{1,2}):(\d{1,2})$/;
+                    const m = str.match(dateTimeRegex);
+                    if (!m) return str;
+                    let [, day, month, year, hours, minutes] = m;
+                    day = day.padStart(2, "0");
+                    month = month.padStart(2, "0");
+                    hours = hours.padStart(2, "0");
+                    minutes = minutes.padStart(2, "0");
+                    let datePart = `${day}.${month}`;
+                    if (year) {
+                        if (year.length === 4) year = year.padStart(4, "0");
+                        datePart += `.${year}`;
+                    }
+                    return `${datePart}, ${hours}:${minutes}`;
+                }
+                for (let [cat, data] of Object.entries(authors)) {
+                    if (data === null) continue;
+                    let place = data.place.toLowerCase();
+                    let date = normalizeDateTime(data.date);
+                    if (!result[place]) result[place] = [];
+                    result[place].push({cat, date});
                 }
                 for (const value in result) {
-                    result[value] = result[value].join(', ');
+                    result[value] = result[value].map(({cat, date}) => `${cat} (с ${date})`).join(', ');
                 }
                 const places = ['Камышовые заросли', 'Редколесье', 'Травянистый берег', 'Разрушенная ограда', 'Расколотое дерево', 'Лесной ручеёк', 'Одинокий склон', 'Валежник', 'Нагретые камни',
                                 'Мшистые земли', 'Дубрава', 'Илистая тропа', 'Главный туннель Речного племени', '1 маршрут', '2 маршрут', '3 маршрут', '4 маршрут'];
                 let text = '';
                 for (const place of places) {
-                    if (result[place.toLowerCase()]) {
+                    const placeLower = place.toLowerCase();
+                    if (result[placeLower]) {
                         if (text) text += '<br>';
-                        text += place + ' - ' + result[place.toLowerCase()];
+                        text += place + ' - ' + result[placeLower];
                     }
                 }
                 if (!text) text = 'Никто не дозорит!';
