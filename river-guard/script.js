@@ -402,7 +402,7 @@ $(document).ready(function() {
 		var missing_patr = [];
 		for (const present_i in present_patr) {
 			let cur = present_patr[present_i];
-			let patr = _.filter(count.patr, {year: cur.year, month: cur.month, day: cur.day, type: cur.type, hour: cur.hour});
+			let patr = _.filter(count.patr_leaders, {year: cur.year, month: cur.month, day: cur.day, type: cur.type, hour: cur.hour});
 			if (!patr.length) {
 				missing_patr.push(cur);
 			}
