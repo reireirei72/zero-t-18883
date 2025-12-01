@@ -26,7 +26,9 @@ $(document).ready(function() {
 
 	$('#count').click(function() {
 		date = new Date($('#date').val());
-		var all_doz = [], present_patr = [], present_doz = [];
+		var present_patr = [], present_doz = []
+		// , all_doz = []
+		;
 		const thisFri = new Date(date);
 		$('#additional_output').val('');
 		thisFri.setDate(thisFri.getDate() - 1);
@@ -35,12 +37,12 @@ $(document).ready(function() {
 		lastWeek.setDate(lastWeek.getDate() - 6);
 		lastWeek.setHours(0);
 		while (lastWeek <= thisFri) {
-			all_doz.push({
-				year: lastWeek.getFullYear(),
-				month: lastWeek.getMonth(),
-				day: lastWeek.getDate(),
-				hour: lastWeek.getHours()
-			});
+			// all_doz.push({
+			// 	year: lastWeek.getFullYear(),
+			// 	month: lastWeek.getMonth(),
+			// 	day: lastWeek.getDate(),
+			// 	hour: lastWeek.getHours()
+			// });
 			if ([9, 11, 15, 18, 21, 23].includes(lastWeek.getHours())) {
 				present_patr.push({
 					year: lastWeek.getFullYear(),
@@ -115,7 +117,7 @@ $(document).ready(function() {
             "3 активный": "03",
             "4 активный": "04",
         };
-		var comments = $('#comments').val().split('\n'), comment_date, pd_date = new Date(), d_end_date = new Date(), is_doz = false, patr_type, comment_num, comment_author, doz_place;
+		var comments = $('#comments').val().split('\n'), comment_date, pd_date = 0, d_end_date = 0, is_doz = false, patr_type, comment_num, comment_author, doz_place;
 
 		for (const string_i in comments) {
 			var string = comments[string_i];
@@ -177,7 +179,7 @@ $(document).ready(function() {
 				if (comment_date.getFullYear() + 1 == pd_date.getFullYear()) { // поправочка на нг
 					pd_date.setFullYear(comment_date.getFullYear());
 				}
-				if (comment_date - pd_date < 0) {
+				if (comment_date - pd_date < -1000) {
 					error(`Вероятно, ошибка в датовремени начала дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Дата комментария меньше даты отчёта`);
 				}
 				if (pd_date < lastWeek) {
@@ -189,6 +191,7 @@ $(document).ready(function() {
 				if (!re) {
 					return error(`Вероятно, ошибка в датовремени конца дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Регулярочка под "Дата и время конца: дд.мм чч:мм" не сработала.`);
 				}
+				d_end_date = new Date();
 				d_end_date.setDate(1);
 				d_end_date.setMonth(+(re[2]) - 1);
 				d_end_date.setDate(re[1]);
@@ -213,35 +216,34 @@ $(document).ready(function() {
 				if (d_end_date < lastWeek) {
 					error(`Вероятно, ошибка в дате или старая отпись на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Начало недели: ${dt_format(lastWeek)}, отпись: ${dt_format(d_end_date)}.`);
 				}
-			} else if (is_doz && /^Место дозора:/u.test(string)) {
+			} else if (is_doz && /^(Место дозора|Занятое место):/u.test(string)) {
 				let s = string.split(':');
-				if (s.length != 2) {
-					return error(`Нет двоеточия на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}`);
-				}
-				let doz_type = s[1].trim().replace(/[^А-Яа-яЁё \d]/g, "").toLowerCase();
+				let doz_type = s[1].replace(/[^А-Яа-яЁё \d]/g, "").trim().toLowerCase();
 				if (!places[doz_type]) {
 					error(`Вероятно, ошибка в месте дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Мы не нашли такое место это где...`);
 				}
 				doz_place = places[doz_type];
 			} else if (is_doz && /^Участник:/u.test(string)) {
-				let s = string.split(':');
-				if (s.length != 2) {
-					return error(`Нет двоеточия на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}`);
+				if (!d_end_date || !pd_date) {
+					error(`Прописан участник дозора, но не прописаны или прописаны неправильно дата-время начала и конца дозора (коммент #${comment_num}). Скорее всего, не удалён отчёт о начале дозора?`);
+				} else {
+					let s = string.split(':');
+					let ids = s[1].match(/\d+/g);
+					if (!ids[0]) {
+						error(`Вероятно, ошибка в участнике дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}.`);
+					}
+					count.doz.push({
+						year: pd_date.getFullYear(),
+						month: pd_date.getMonth(),
+						day: pd_date.getDate(),
+						hour: pd_date.getHours(),
+						diff: Math.floor((d_end_date - pd_date) / 1000 / 60),
+						type: doz_place,
+						cat: +ids[0],
+						comment_num: comment_num
+					});
 				}
-				let ids = s[1].match(/\d+/g);
-				if (!ids[0]) {
-					error(`Вероятно, ошибка в участнике дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}.`);
-				}
-				count.doz.push({
-					year: pd_date.getFullYear(),
-					month: pd_date.getMonth(),
-					day: pd_date.getDate(),
-					hour: pd_date.getHours(),
-					diff: Math.floor((d_end_date - pd_date) / 1000 / 60),
-					type: doz_place,
-					cat: +ids[0],
-					comment_num: comment_num
-				});
+				d_end_date = pd_date = 0;
 			} else if (is_doz && /^(Нарушения|Освобожд)/u.test(string)) {
 				let s = string.split(':');
 				if (s.length != 2) {
@@ -267,6 +269,7 @@ $(document).ready(function() {
 				if (!tmpdate || !tmptime) {
 					return error(`Какая-то хрень с датой-временем на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}`);
 				}
+				pd_date = new Date();
 				pd_date.setDate(1);
 				pd_date.setMonth(+(tmpdate[2]) - 1);
 				pd_date.setDate(tmpdate[1]);
@@ -290,9 +293,6 @@ $(document).ready(function() {
 				patr_type = "П" + ((+patr_type == 1) ? "1" : "2");
 			} else if (!is_doz && /^Участники:/u.test(string)) {
 				let s = string.split(':');
-				if (s.length != 2) {
-					return error(`Нет двоеточия на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}`);
-				}
 				let ids = s[1].match(/\d+/g);
 				for (const id_i in ids) {
 					const id = ids[id_i];
@@ -308,9 +308,6 @@ $(document).ready(function() {
 				}
 			} else if (!is_doz && /^Ведущий:/u.test(string)) {
 				let s = string.split(':');
-				if (s.length != 2) {
-					return error(`Нет двоеточия на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}`);
-				}
 				let leader = string.replace(/\D+/g, '');
 				count.patr_leaders.push({
 					year: pd_date.getFullYear(),
@@ -578,7 +575,14 @@ $(document).ready(function() {
 			}
 			val += '\n';
 		}
-		val += `Патрули и дозоры [${addLeadZero(date.getDate())}.${addLeadZero(date.getMonth()+1)}]:\n`;
+		val += `Ведущие [${addLeadZero(date.getDate())}.${addLeadZero(date.getMonth()+1)}]:\n`;
+		const lead_count = {};
+		for (const item of count.patr_leaders) {
+			lead_count[item.cat] = (lead_count[item.cat] || 0) + 1;
+		}
+		val += Object.entries(lead_count).map(([id, count]) => `${id}	${count}`).join("\n");
+
+		val += `\n\nПатрули и дозоры [${addLeadZero(date.getDate())}.${addLeadZero(date.getMonth()+1)}]:\n`;
 		let best_doz = 0, best_patr = 0, second_best_doz = 0, second_best_patr = 0;
 		for (const cat in count_out) {
 			const this_cat = count_out[cat];
