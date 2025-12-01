@@ -226,6 +226,8 @@ $(document).ready(function() {
 			} else if (is_doz && /^Участник:/u.test(string)) {
 				if (!d_end_date || !pd_date) {
 					error(`Прописан участник дозора, но не прописаны или прописаны неправильно дата-время начала и конца дозора (коммент #${comment_num}). Скорее всего, не удалён отчёт о начале дозора?`);
+				} else if (d_end_date < pd_date) {
+					return error(`Дозор закончился раньше, чем начался (коммент #${comment_num}). Алярм отрицательные баллы за дозоры`);
 				} else {
 					let s = string.split(':');
 					let ids = s[1].match(/\d+/g);
@@ -575,18 +577,17 @@ $(document).ready(function() {
 			}
 			val += '\n';
 		}
-		val += `Ведущие [${addLeadZero(date.getDate())}.${addLeadZero(date.getMonth()+1)}]:\n`;
 		const lead_count = {};
 		for (const item of count.patr_leaders) {
 			lead_count[item.cat] = (lead_count[item.cat] || 0) + 1;
 		}
-		val += Object.entries(lead_count).map(([id, count]) => `${id}	${count}`).join("\n");
 
-		val += `\n\nПатрули и дозоры [${addLeadZero(date.getDate())}.${addLeadZero(date.getMonth()+1)}]:\n`;
+		val += `Патрули, дозоры и ведения [${addLeadZero(date.getDate())}.${addLeadZero(date.getMonth()+1)}]:\n`;
 		let best_doz = 0, best_patr = 0, second_best_doz = 0, second_best_patr = 0;
 		for (const cat in count_out) {
 			const this_cat = count_out[cat];
-			val += `${cat}	${escapePoints(this_cat.patr)}	${escapePoints(this_cat.doz)}\n`;
+			const this_lead_count = lead_count[cat] || 0;
+			val += `${cat}	${escapePoints(this_cat.patr)}	${escapePoints(this_cat.doz)}	${escapePoints(this_lead_count)}\n`;
 			if (this_cat.patr > best_patr) {
 				best_patr = this_cat.patr;
 			}
