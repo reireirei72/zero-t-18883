@@ -130,6 +130,7 @@
             if (secMatch) totalSeconds += parseInt(secMatch[1], 10);
             setSettings('action_data', JSON.stringify({date: new Date(), sec: totalSeconds}))
         }
+        /*
         const map = {
             "Лабиринт Слабости": {
                 1: {"1x4": 0, "1x6": 0, "5x6": 0, "7x5": 1},
@@ -262,7 +263,7 @@
         });
         $('body').on('click', '#cws_7dl_search', (e) => {
             refreshMap(true);
-        });
+        });*/
 
     }
 })(window, document, jQuery);
