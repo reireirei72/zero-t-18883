@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CWS 7dl
-// @version      0.1
+// @version      0.2
 // @description  Встроенная карта 7ДЛ
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -40,7 +40,6 @@
     } else {
         try { actionData = JSON.parse(actionData) } catch(e) { actionData = {date: new Date(), sec: 0}; };
     }
-    console.log(actionData);
     if (/^https:\/\/\w*\.?catwar.(su|net)\/$/.test(window.location.href)) {
         const getTimeStr = function() {
             const date = new Date();
@@ -64,7 +63,11 @@
             return str + " до конца действия";
         }
         $('head').append(`<style>#cws_localTimer, #cws_actionTimer {padding: 0 .5em;font-size: 12px}</style>`);
-        $('.other_cats_list').append('| <span id="cws_localTimer">' + getTimeStr() + '</span> | <span id="cws_actionTimer">' + getActionTimeStr() + '</span>');
+        if ($('.other_cats_list').length) {
+            $('.other_cats_list').append('| <span id="cws_localTimer">' + getTimeStr() + '</span> | <span id="cws_actionTimer">' + getActionTimeStr() + '</span>');
+        } else {
+            $('body').prepend('<span style="background: white;"><span id="cws_localTimer">' + getTimeStr() + '</span> | <span id="cws_actionTimer">' + getActionTimeStr() + '</span></span>');
+        }
         setInterval(function () {
             $('#cws_localTimer').html(getTimeStr());
             $('#cws_actionTimer').html(getActionTimeStr());
