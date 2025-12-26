@@ -44,11 +44,11 @@ $(document).ready(function(){
         if (loc < 0 || loc > getLocCount()) {
             return alert(`В этом лабиринте (${labName}) нет столько локаций (${loc})`);
         }
-        const drawCount = 10;
+        const drawCount = 20;
         const direction = !!(+$("#inputDirection").val());
         const shouldIncrement = !isUpper && direction || isUpper && !direction;
         const step = shouldIncrement ? 1 : -1;
-        const end = loc + step * drawCount;
+        const end = loc + step * drawCount - step;
         let tableHtml = `<div><p class="mb-0 mx-2"><i>Синим цветом отмечены переходы, ведущую в Морскую параллель (домой для МВ/ВТ). Зелёным цветом - переходы, ведущие в Озёрную параллель (домой для ОВ). Жмякните стрелочку рядом с локацией, чтобы перейти в неё и продолжить путь!</i></p><p class="mb-1 mx-2"><i>Отсюда >>> Идём сюда</i></p></div>`;
         for (let i = loc; i !== end + step; i += step) {
             let locData = map[labName][i];
