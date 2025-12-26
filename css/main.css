@@ -160,7 +160,7 @@ input.hid-scroll::-webkit-inner-spin-button {
     -o-transition: background-color 0.15s ease-out 0s;
     transition: background-color 0.15s ease-out 0s;
 }
-.pathfind-table input:checked + .game-cell {
+.pathfind-table .game-cell:has(input:checked) {
     background-color: #805a44;
 }
 .pathfind-table {
@@ -196,6 +196,23 @@ input.hid-scroll::-webkit-inner-spin-button {
 .lit {
     background-color: #937666;
 }
+.lit.highlight-blue {
+    background-color: #002060;
+}
+.lit.highlight-green {
+    background-color: #92d050;
+}
+
+.locCopy {
+    cursor: pointer;
+}
+.locCopy path {
+    fill: #3b6ea5;
+}
+.locCopy .arrow-bg {
+    fill: #fff;
+}
+
 .dawey {background-color: #d95425;}
 .loc_num {
     z-index: -1;
