@@ -49,14 +49,11 @@ $(document).ready(function(){
             $("#search_res").html("<hr>В "+((whereFrom=="dush")?"Душе":"Степях")+" не найдена такая конечная локация.");
             return;
         }
-        console.log(toNum)
         if (!Array.isArray(fromNum)) {
             fromNum = [parseInt(fromNum)];
-            //console.log('fromNum was not an array')
-        } // to array
+        }
         if (!Array.isArray(toNum)) {
             toNum = [parseInt(toNum)];
-            //console.log('toNum was not an array')
         }
         if (toNum == fromNum && toNum.length == 1) {
             $("#search_res").html("<hr>Вы уже находитесь в этой локации.");
@@ -164,12 +161,19 @@ $(document).ready(function(){
 		return false;
 	});
 	$('.search input').on('change', function() {
-		let $lit = $("#"+$(this).attr('id')[0]+"_tbl input:checked"),
-		val = "";
-		$.each($lit, function() {
-			val += $(this).attr('id').replace(/\D/, "");
-		});
-		$('#'+$(this).attr('id')[0]+"_id").val(val);
+        if ($(this).attr("type") != "checkbox") return;
+        const $table = $(this).closest('table');
+        let val = "";
+
+        $table.find('tr').each(function (row) {
+            $(this).find('td').each(function (col) {
+                const $checkbox = $(this).find('input[type="checkbox"]');
+                if ($checkbox.prop('checked')) {
+                    val += "" + (row - 1) + col;
+                }
+            });
+        });
+		$('#'+$table.attr('id')[0]+"_id").val(val);
 	});
 	$('input[name="c1"]').on('change', function() {
 		whereFrom = $(this).attr('id');
