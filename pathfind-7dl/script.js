@@ -16,10 +16,23 @@ $(document).ready(function(){
 
         if (saved !== null) {
             el.val(saved);
+            if (el.attr('id') === "inputLab") currentLab = saved;
         }
     });
     $('#inputLab, #inputDirection').on('change', function () {
         localStorage.setItem('input:' + this.id, this.value);
+    });
+    $('#inputLab').on('change', function () {
+        const direction = +$('#inputDirection').val() < 1 ? +1 : -1; // Moved to the right
+        const isRightSide = newLab.indexOf('(верхний)') !== -1;
+        let loc;
+        if (isRightSide) {
+            loc = direction < 0 ? getLocCount() : 1;
+        } else {
+            loc = direction < 0 ? 1 : getLocCount();
+        }
+        $('#inputNum').val(loc);
+        localStorage.setItem('input:inputNum', loc);
     });
     $('#inputNum').on('input', function () {
         localStorage.setItem('input:' + this.id, this.value);
@@ -79,7 +92,9 @@ $(document).ready(function(){
     });
     $("#res").on("click", ".locCopy", function() {
         $("#inputLab").val($(this).data("lab"));
+        localStorage.setItem('input:inputLab', $(this).data("lab"));
         $("#inputNum").val($(this).data("id"));
+        localStorage.setItem('input:inputNum', $(this).data("id"));
         $("#findWay").click();
     });
     $("#findNum").click(function() {
