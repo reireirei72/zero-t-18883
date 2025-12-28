@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CWS 7dl
-// @version      1.0
+// @version      1.1
 // @description  Встроенная карта 7ДЛ
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -199,11 +199,13 @@
         });
         $('#cws_7dl_left').on('click', (e) => {
             if (!ready) return;
-            switchLoc(+loc_choice + (+loc_choice > 0 ? 1 : -1));
+            const isRightSide = lab_choice.indexOf('(верхний)') !== -1;
+            switchLoc(+loc_choice + (isRightSide ? -1 : 1));
         });
         $('#cws_7dl_right').on('click', (e) => {
             if (!ready) return;
-            switchLoc(+loc_choice + (+loc_choice > 0 ? -1 : 1));
+            const isRightSide = lab_choice.indexOf('(верхний)') !== -1;
+            switchLoc(+loc_choice + (isRightSide ? 1 : -1));
         });
         $('#cws_7dl_observe').on('click', (e) => {
             if (!ready) return;
