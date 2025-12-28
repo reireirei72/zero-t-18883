@@ -37,6 +37,9 @@ $(document).ready(function(){
     $('#inputNum').on('input', function () {
         localStorage.setItem('input:' + this.id, this.value);
     });
+    $('#clear').on('click', function() {
+        $("#pathfind-table input:checked").prop("checked", false);
+    });
     const getLabName = function(lab) {
         return (lab || $('#inputLab').val()).split('(')[0].trim();
     };
