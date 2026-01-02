@@ -210,7 +210,7 @@ $(document).ready(function() {
 				if (d_end_date - pd_date < 0) {
 					error(`Вероятно, ошибка в датовремени конца дозора на ${string_i} (коммент #${comment_num}), строчка выглядит как ${string}. Дата начала отчёта меньше даты конца`);
 				}
-				if (comment_date - d_end_date > 1000 * 60 * 15) { // 15 минут разницы
+				if (comment_date - d_end_date > 1000 * 60 * 60) { // 60 минут разницы
 					error(`${comment_author} отписал очень поздно дозор в комменте #${comment_num}, строчка выглядит как ${string}. Подозрительно`);
 				}
 				if (d_end_date < lastWeek) {
