@@ -446,7 +446,7 @@ $(document).ready(function() {
 			// if (!nar) {
 			// 	count_out[doz.cat].doz++;
 			// }
-			let points = Math.round(doz.diff / 30 * 0.5 * 100) / 100;
+			let points = Math.floor(doz.diff);//Math.round(doz.diff / 30 * 0.5 * 100) / 100;
 			count_out[doz.cat].doz += points;
 			if (count.medals.mzauvzhp[doz.cat]) {
 				const mzcat = count.medals.mzauvzhp[doz.cat];
