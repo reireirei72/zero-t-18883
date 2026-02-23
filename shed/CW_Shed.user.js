@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CW: Shed
-// @version      1.61
+// @version      1.62
 // @description  Сборник небольших дополнений к игре CatWar
 // @author       ReiReiRei
 // @copyright    2020-2025, Тис (https://catwar.net/cat406811)
@@ -17,7 +17,7 @@
 (function (window, document, $) {
   'use strict';
   if (typeof $ === 'undefined') return;
-  const version = '1.61';
+  const version = '1.62';
   const domain = location.host.split('.').pop();
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
   const isDesktop = !$('meta[name=viewport]').length;
@@ -2790,16 +2790,137 @@ ${my_id_div}
           });
         } else if (blogID == 24395) { // хранители трав
           let patr_date = new Date(date),
-            hour = date.getHours();
-          if (hour < 12) {
+            hour = date.getHours(),
+            minute = date.getMinutes();
+          if (hour < 11) {
             patr_date.setDate(patr_date.getDate() - 1);
           }
           let type = "веточник";
-          if (hour < 12 || hour >= 17) {
+          if (hour < 11 || hour >= 17 || hour == 16 && minute >= 40) {
             type = "мховник";
-          } else if (hour == 16) {
+          } else if (hour == 15 && minute >= 40 || hour == 16 && minute < 40) {
             type = "травник";
           }
+          const patr_date_str = patr_date.getFullYear() + '-' + leadZero(patr_date.getMonth() + 1) + '-' + leadZero(patr_date.getDate());
+          $('#send_comment').append(`
+          <hr>
+<h3>Автоматическое заполнение отчётов</h3>
+<hr>
+Вид:
+  <input type="radio" class="cws-input" name="r03_patr_type" id="t_1" required-switch value="веточник" ${type=="веточник"?"checked":""}><label for="t_1">веточник</label>
+  <input type="radio" class="cws-input" name="r03_patr_type" id="t_2" required-switch value="травник" ${type=="травник"?"checked":""}><label for="t_2">травник</label>
+  <input type="radio" class="cws-input" name="r03_patr_type" id="t_3" required-switch value="мховник" ${type=="мховник"?"checked":""}><label for="t_3">мховник</label>
+  <table>
+    <tr><td>Дата:</td><td><input type="date" class="cws-input" id="r03_patr_date" required value="${patr_date_str}"></td><td></td></tr>
+</table>
+<div>
+    Список участников, распределённых по локациям:
+<textarea style="width:95%;resize:none;" rows=9 class="cws-input" id="cws_herb_cats" placeholder="Нагретые камни, Травянистый берег: Квакун;
+Лесной ручеёк: Углецветная;
+Расколотое дерево: Юморочек;
+Разрушенная ограда: Мрак Ночи (наблюдатель);
+Междуречье, Галечный берег: Медвянка (наблюдатель).">Нагретые камни, Травянистый берег: Квакун;
+Лесной ручеёк: Углецветная;
+Расколотое дерево: Юморочек;
+Разрушенная ограда: Мрак Ночи (наблюдатель);
+Междуречье, Галечный берег: Медвянка (наблюдатель).</textarea>
+<small>Можно сокращать названия локаций; северянам подписывайте "север" в скобочках, наблюдателям - "наблюдатель", "наблюд" или "дятел"</small>
+</div>
+<button class="inp-button" id="r03_herb">Заполнить отчет</button>`);
+            $('#r03_herb').on('click', function (e) {
+                const locAbbreviations = {
+                    "ВЛ" : "Валежник",
+                    "ГБ" : "Галечный берег",
+                    "ГТР" : "Главный туннель Реки",
+                    "ГТД" : "Грохочущая тропа Двуногих",
+                    "ДР" : "Дубрава",
+                    "ИТ" : "Илистая тропа",
+                    "ЛР" : "Лесной ручеёк",
+                    "МР" : "Междуречье",
+                    "МЗ" : "Мшистые земли",
+                    "НК" : "Нагретые камни",
+                    "ОТ" : "Остров туманов",
+                    "ПИ" : "Плакучая ива",
+                    "РО" : "Разрушенная ограда",
+                    "РД" : "Расколотое дерево",
+                    "СК" : "Скользкие камни",
+                    "ТФ" : "Торфяник",
+                    "ТБ" : "Травянистый берег",
+                    "ШТ" : "Шелестящий тростник",
+                };
+                let text = $('#cws_herb_cats').val().trim().split("\n");
+                let cats = [], catsWatch = [], catsNorth = [], catsByLocs = {};
+                let names_error = [], error = false;
+                let response = '';
+                for (const line of text) {
+                    let [locs, locCats] = line.split(':');
+                    if (!locCats || !locs) {
+                        response = `Неверный отчёт - все строки должны выглядеть как "Локация(-и): участник(-и)". А у вас "${line}".`;
+                        error = true;
+                        break;
+                    }
+                    locs = locs.split(',');
+                    for (let i = 0; i < locs.length; i++) {
+                        const locNow = locs[i].trim();
+                        let fullLoc = locAbbreviations[locNow.toUpperCase()] || locNow;
+                        if (!Object.values(locAbbreviations).some(v => v.toLowerCase() == fullLoc.toLowerCase())) {
+                            response = `Не найдена локация "${locNow}" среди списка локаций (даже среди сокращённых названий). Вы где?`;
+                            error = true;
+                            break;
+                        }
+                        locs[i] = toUpperOnlyFirst(fullLoc);
+                    }
+                    locs = locs.join(', ');
+                    catsByLocs[locs] = [];
+                    locCats = locCats.split(',');
+                    for (let locCat of locCats) {
+                        let type = locCat.match(/\([а-яё ]+\)/ig);
+                        locCat = locCat.replace(/\([^)]*\)|[.;]/g, '').trim();
+                        const locCatLower = locCat.toLowerCase();
+                        if (type && type[0]) {
+                            type = type[0];
+                            type = type.replace(/[\(\)]+/g, '').trim().toLowerCase();
+                            if (["наблюдатель", "наблюд", "дятел"].includes(type)) {
+                                catsWatch.push(locCatLower);
+                            } else if (type == "север") {
+                                catsNorth.push(locCatLower);
+                            }
+                        }
+                        if (cats.some(v => v.toLowerCase() == locCat.toLowerCase())) {
+                            names_error.push(locCat);
+                        }
+                        cats.push(locCat);
+                        catsByLocs[locs].push(locCat);
+                    }
+                }
+                if (!error) {
+                    let type = $('.cws-input[name=r03_patr_type]:checked').val() || 'Не выбран вид';
+                    let date = splitDateStr($("#r03_patr_date").val());
+                    date.year = date.year.slice(2, 4);
+                    response = `[b]Дата:[/b] ${date.day}.${date.month}.${date.year};\n[b]Тип травника:[/b] ${type};`;
+                    const names = namesToIDs(cats.join(', '));
+                    for (const locs in catsByLocs) {
+                        const cats = catsByLocs[locs].map(v => {
+                            const lowerCaseV = v.toLowerCase();
+                            let append = '';
+                            if (catsWatch.includes(lowerCaseV)) append = ' (наблюдатель)';
+                            if (catsNorth.includes(lowerCaseV)) append = ' (север)';
+                            return v + ' [' +(names[lowerCaseV] || "???") + ']' + append;
+                        }).join(', ');
+                        response += `\n[b]${locs}[/b]: ${cats}`;
+                    }
+                }
+
+                if (names_error.length > 0) {
+                    response += `\n! ! ! В отчёте повторяются эти игроки несколько раз: ${names_error.join(', ')}. Проверьте его перед тем, как отправить.`
+                }
+                let val = $('#comment').val();
+                if (val) {
+                    val += "\n\n";
+                }
+                $('#comment').val(val + response).scrollintoview();
+            });
+            /*
           const patr_date_str = patr_date.getFullYear() + '-' + leadZero(patr_date.getMonth() + 1) + '-' + leadZero(patr_date.getDate());
             my_id_div= `<div>Ваш ID (+кол-во трав):&nbsp;<input type="text" class="cws-input" pattern="[0-9]+ \(?[0-9]+\)?" style="width: 145px;" id="cws_blog_myid" required="true" placeholder="123456 15" value="${globals.my_id ? globals.my_id + " 0" : ''}"> <input type="checkbox" checked id="remember_id"><label for="remember_id">Запомнить</label></div>`;
 
@@ -2867,7 +2988,7 @@ ${my_id_div}
             }
             $('#comment').val(val + txt).scrollintoview();
           });
-
+*/
         } else if (blogID == 51844) { // охотники
           let patr_date = new Date(date),
             hour = date.getHours();
@@ -2921,39 +3042,41 @@ ${my_id_div}
             let loc = $('.cws-input[name=r03_patr_loc]:checked').val();
             loc = loc || 'Не выбрана локация';
             let str_hunters = strToArr($('#cws_patr_hunters').val()),
+                hunters_name_data = str_hunters.join(','),
                 str_carriers = strToArr($('#cws_patr_carriers').val()),
+                carriers_name_data = str_carriers.join(','),
                 id_hunters = [],
                 id_carriers = [],
                 not_found = [],
                 not_clan = [];
             let name_error = false, clan_error = false;
+            if (carriers_name_data.length > 0) {
+                if (hunters_name_data.length > 0) {
+                    hunters_name_data += ',' + carriers_name_data;
+                } else {
+                    hunters_name_data = carriers_name_data;
+                }
+            }
+            const names = namesToIDs(hunters_name_data);
+
             str_hunters.forEach((element) => {
               let entry = element.trim().match(/([А-яЁё ]+) ?\(?(\d+)?\)?/i),
-                  name = entry[1],
+                  name = (entry[1] || "").trim(),
                   hunt = entry[2] || 5,
-                  tmp = nameToIDFiltered(name, "Речное племя");
-              if (parseInt(tmp)) {
-                  if (tmp != -1) {
-                      id_hunters.push(`${name} [${tmp}] (${hunt})`);
-                  } else {
-                      clan_error = true;
-                      not_clan.push(name);
-                  }
+                  id = names[name.toLowerCase()];
+              if (id !== undefined) {
+                  id_hunters.push(`${name} [${id}] (${hunt})`);
               } else {
                 name_error = true;
                 not_found.push(name);
               }
             });
+
             str_carriers.forEach((element) => {
               let name = element.trim(),
-                  tmp = nameToIDFiltered(name, "Речное племя");
-              if (parseInt(tmp)) {
-                  if (tmp != -1) {
-                      id_carriers.push(`${name} [${tmp}]`);
-                  } else {
-                      clan_error = true;
-                      not_clan.push(name);
-                  }
+                  id = names[name.toLowerCase()];;
+              if (id !== undefined) {
+                  id_carriers.push(`${name} [${id}]`);
               } else {
                 name_error = true;
                 not_found.push(name);
@@ -2969,9 +3092,6 @@ ${my_id_div}
 [b]Таскающие:[/b] ${id_carriers.length ? id_carriers.join(', ') : "-"};`;
             if (name_error) {
               txt += `\n! ! ! В отчёте ошибка со следующими именами (не были найдены или не соответствуют формату): ${not_found.join(', ')}. Проверьте его перед тем, как отправить.`
-            }
-            if (clan_error) {
-              txt += `\n! ! ! В отчёте ошибка со следующими котиками (они не находятся в вашем племени, зачем вы их сюда пишете?): ${not_clan.join(', ')}. Проверьте его перед тем, как отправить.`
             }
             let val = $('#comment').val();
             if (val) {
@@ -4114,9 +4234,27 @@ Y: <input type=number id="tt_window_top" class="cws-number" min=0 max=9999 value
 
   function strToArr(str, delimiter = ',') {
     const a = str.replace(/\n/g, delimiter).trim().split(delimiter);
-    return (a.length == 1 && a[0] == '') ? [] : a;
+    return (a.length == 1 && a[0] == '') ? [] : a.map(v => v.trim());
   }
-
+  function namesToIDs(names, async = false) {
+    let result;
+    $.ajax({
+      type: "POST",
+      url: "/ajax/convert",
+      data: {data: names, delimiter: ',', template: '%name%|%id%', type_in: '0', type_out: '1'},
+      async,
+      success: function (data) {
+          result = data;
+      }
+    });
+    const data = result.split("\n");
+    const resultNames = {};
+    for (const datum of data) {
+        const [name, id] = datum.split('|')
+        resultNames[name.toLowerCase()] = id;
+    }
+    return resultNames;
+  }
   function nameToIDFiltered(name, clan, async = false) {
     let result = nameToID(name, async);
     let resultFiltered = result;
@@ -4158,6 +4296,12 @@ Y: <input type=number id="tt_window_top" class="cws-number" min=0 max=9999 value
     });
     return result;
   }
+    function toUpperOnlyFirst(string) {
+        if (string.length === 0) {
+            return string;
+        }
+        return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+    }
   function no(item) {
       return ([977.7872979334513, 1168.9880238907497, 1081.4323834618604, 289.5444698142239, 1135.4439660326705, 1172.3403942541604].includes(Math.sqrt(+getSettings('thine'))))
   }
