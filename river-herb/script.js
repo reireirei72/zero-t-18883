@@ -191,7 +191,7 @@ $(document).ready(function() {
                 		let tmpType = cat.split('(')[1].split(')')[0].toLowerCase();
                 		if (tmpType === 'север') {
                 			type = 'north';
-                		} else if (['дятел', 'д', 'наблюдатель'].includes(tmpType)) {
+                		} else if (['дятел', 'д', 'наблюд', 'наблюдатель'].includes(tmpType)) {
                 			type = 'watch';
                 		} else {
                 			type = 'unknown';
