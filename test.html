@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>test</title>
+  <style>.test {
+    -webkit-touch-callout: none;   /* Disable callout menu */
+    -webkit-user-select: text;     /* Optional: allow selection */
+  }
+	.copy {
+		cursor: pointer;
+	}</style>
+</head>
+<body>
+	<div>
+		Строка, которая МОЖЕТ превратиться в ссылку - <span class="copy">1026001601</span>
+	</div>
+	<div>
+		Строка, которая НЕ должна превратиться в ссылку - <span class="test copy">1026001601</span>
+	</div>
+	<div>Обе строки по клику должны кидать себя в буфер обмена</div>
+	<script>
+		document.querySelectorAll('.copy').forEach(function (el) {
+		    el.addEventListener('click', function () {
+		        const text = el.textContent;
+		        if (navigator.clipboard && navigator.clipboard.writeText) {
+		            navigator.clipboard.writeText(text).catch(function (err) {
+		                console.error('Ошибка Clipboard API:', err);
+		                fallbackCopy(text);
+		            });
+		        	alert('Скопировано');
+		        } else {
+		            fallbackCopy(text);
+		        }
+		    });
+		});
+
+		function fallbackCopy(text) {
+		    const temp = document.createElement('textarea');
+		    temp.value = text;
+
+		    document.body.appendChild(temp);
+		    temp.select();
+
+		    try {
+		        document.execCommand('copy');
+		        alert('Скопировано');
+		    } catch (err) {
+		        console.error('execCommand не поддерживается', err);
+		    }
+
+		    document.body.removeChild(temp);
+		}
+	</script>
+</body>
+</html>
