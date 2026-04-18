@@ -98,7 +98,7 @@ $(document).ready(function() {
 		var comments = $('#comments').val().split('\n')
 		var gathering_date = new Date(), gathering_type, comment_num;
 		for (const string_i in comments) {
-			var string = comments[string_i].trim();
+			var string = comments[string_i].trim().replaceAll('ë', 'ё'); // представьте 2026 люди до сих пор не могут использовать сука нормальную не китайскую клавиатуру с нормальной кириллической ё
 			if (!string.length
 				|| ['Ответить | Цитировать', 'Ответить', 'Цитировать'].includes(string)) { // Сраные моды
 				continue;
