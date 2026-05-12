@@ -249,7 +249,6 @@ function renderResult(result){
         div.innerHTML = `
             <b>${items[id]?.name || id}</b>
             x${count.toFixed(2).replace(/\.00$/, "")}
-            <div class="id">${id}</div>
         `;
         container.appendChild(div);
     }
