@@ -123,7 +123,6 @@ function renderCraftList(){
             >
             <div>
                 <div>${entry.name}</div>
-                <div class="id">${entry.name}</div>
             </div>
             <button onclick="removeCraft(${index})">
                 Удалить
