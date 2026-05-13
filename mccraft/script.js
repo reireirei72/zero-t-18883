@@ -246,9 +246,14 @@ function renderResult(result){
     for (const [id, count] of sorted) {
         const div = document.createElement("div");
         div.className = "result-item";
+        const stackCount = Math.floor(count / 64);
+        const leftover = count - stackCount * 64;
+        let stackString = '';
+        if (stackCount > 0) stackString += stackCount + 'x64';
+        if (leftover > 0) stackString += (stackString ? ' + ' : '') + leftover;
         div.innerHTML = `
             <b>${items[id]?.name || id}</b>
-            x${count.toFixed(2).replace(/\.00$/, "")}
+            x${count.toFixed(2).replace(/\.00$/, "")} (${stackString})
         `;
         container.appendChild(div);
     }
