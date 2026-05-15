@@ -155,7 +155,7 @@ function isFinal(itemId, deepMode){
 
 const MAX_DEPTH = 50;
 let recursionDetected = false;
-function processItem(itemName, count, result, deepMode, depth = 0){
+function processItem(itemName, count, result, deepMode, sourceItemName, sourceItemCount, depth = 0){
     // Защита от бесконечной рекурсии
     if (depth >= MAX_DEPTH) {
         recursionDetected = true;
@@ -165,28 +165,41 @@ function processItem(itemName, count, result, deepMode, depth = 0){
         );
         return;
     }
-    // Если предмет конечный
-    if (isFinal(itemName, deepMode)) {
+    // Если предмет конечный (за исключением случаев, когда мы в первом витке)
+    if (isFinal(itemName, deepMode) && depth > 0) {
         if (!result[itemName]) {
-            result[itemName] = 0;
+            result[itemName] = {totalCount: 0, for: {}};
         }
-        result[itemName] += count;
+        result[itemName].totalCount += count;
+        if (sourceItemName && sourceItemCount) {
+            if (!result[itemName].for[sourceItemName]) {
+                result[itemName].for[sourceItemName] = 0;
+            }
+            result[itemName].for[sourceItemName] += sourceItemCount;
+        }
         return;
     }
 
+    const recipe = recipes[itemName];
+
     // Если рецепта нет
-    if (!recipes[itemName]) {
+    if (!recipe) {
         console.error(
             "Обнаружен отсутствующий рецепт у предмета:",
             itemName
         );
         if (!result[itemName]) {
-            result[itemName] = 0;
+            result[itemName] = {totalCount: 0, for: []};
         }
-        result[itemName] += count;
+        result[itemName].totalCount += count;
+        if (sourceItemName && sourceItemCount) {
+            if (!result[itemName].for[sourceItemName]) {
+                result[itemName].for[sourceItemName] = 0;
+            }
+            result[itemName].for[sourceItemName] += sourceItemCount;
+        }
         return;
     }
-    const recipe = recipes[itemName];
     const recipeAmount = recipe.amount || 1;
     // Во сколько раз масштабируем рецепт
     const multiplier = count / recipeAmount;
@@ -197,6 +210,8 @@ function processItem(itemName, count, result, deepMode, depth = 0){
             (ingredient.count ?? 1) * multiplier,
             result,
             deepMode,
+            itemName,
+            count,
             depth + 1
         );
     }
@@ -218,7 +233,8 @@ function calculate(){
             entry.name,
             entry.count,
             result,
-            deepMode
+            deepMode,
+
         );
     }
     renderResult(result);
@@ -237,24 +253,47 @@ function renderResult(result){
     const container = document.getElementById("result");
     container.innerHTML = "";
     const sorted = Object.entries(result)
-        .sort((a, b) => b[1] - a[1]);
+        .sort((a, b) => b[1].totalCount - a[1].totalCount);
     if (sorted.length === 0) {
         container.innerHTML = "Ничего не найдено";
         return;
     }
 
-    for (const [id, count] of sorted) {
+    for (const [name, data] of sorted) {
+        const totalCount = data.totalCount;
+        const itemSpecifics = [];
+        for (const forItemName in data.for) {
+            const count = data.for[forItemName];
+            const ingredientData = recipes[forItemName]?.ingredients?.find(item => item.name === name);
+            const ingredientCount = (ingredientData?.count || 0) * count;
+            itemSpecifics.push(`
+                <div class='result-item-specifics'>
+                ${formatStackString(ingredientCount)} шт. → ${forItemName} x${formatStackString(count)}
+                </div>
+            `);
+        }
         const div = document.createElement("div");
         div.className = "result-item";
-        const stackCount = Math.floor(count / 64);
-        const leftover = count - stackCount * 64;
-        let stackString = '';
-        if (stackCount > 0) stackString += stackCount + 'x64';
-        if (leftover > 0) stackString += (stackString ? ' + ' : '') + leftover;
         div.innerHTML = `
-            <b>${items[id]?.name || id}</b>
-            x${count.toFixed(2).replace(/\.00$/, "")} (${stackString})
+            <div>
+                <b>${name}</b>
+                x${formatStackString(totalCount)}
+            </div>
+                    ${itemSpecifics.join('')}
+            <div class='result-item-specifics'>
+            </div>
         `;
         container.appendChild(div);
     }
+}
+
+function formatStackString(count) {
+    const stackCount = Math.floor(count / 64);
+    const leftover = count - stackCount * 64;
+    let stackString = '';
+    if (stackCount > 1 || 
+        stackCount > 0 && leftover > 0) stackString += stackCount + '<small>x64</small>';
+    if (stackCount > 1 && leftover > 0) stackString += (stackString ? ' + ' : '') + leftover.toFixed(2).replace(/\.00$/, "");
+    if (stackString) stackString = ' (' + stackString + ')';
+    return count.toFixed(2).replace(/\.00$/, "") + stackString;
 }
