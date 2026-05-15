@@ -263,12 +263,12 @@ function renderResult(result){
         const totalCount = data.totalCount;
         const itemSpecifics = [];
         for (const forItemName in data.for) {
-            const count = data.for[forItemName];
+            const ingredientCount = data.for[forItemName];
             const ingredientData = recipes[forItemName]?.ingredients?.find(item => item.name === name);
-            const ingredientCount = (ingredientData?.count || 0) * count;
+            const resultCount = ingredientCount / (ingredientData?.count);
             itemSpecifics.push(`
                 <div class='result-item-specifics'>
-                ${formatStackString(ingredientCount)} шт. → ${forItemName} x${formatStackString(count)}
+                ${formatStackString(ingredientCount)} шт. → ${forItemName} x${formatStackString(resultCount)}
                 </div>
             `);
         }
