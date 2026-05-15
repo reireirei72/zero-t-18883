@@ -155,7 +155,7 @@ function isFinal(itemId, deepMode){
 
 const MAX_DEPTH = 50;
 let recursionDetected = false;
-function processItem(itemName, count, result, deepMode, sourceItemName, sourceItemCount, depth = 0){
+function processItem(itemName, count, result, deepMode, sourceItemName, depth = 0){
     // Защита от бесконечной рекурсии
     if (depth >= MAX_DEPTH) {
         recursionDetected = true;
@@ -171,11 +171,11 @@ function processItem(itemName, count, result, deepMode, sourceItemName, sourceIt
             result[itemName] = {totalCount: 0, for: {}};
         }
         result[itemName].totalCount += count;
-        if (sourceItemName && sourceItemCount) {
+        if (sourceItemName) {
             if (!result[itemName].for[sourceItemName]) {
                 result[itemName].for[sourceItemName] = 0;
             }
-            result[itemName].for[sourceItemName] += sourceItemCount;
+            result[itemName].for[sourceItemName] += count;
         }
         return;
     }
@@ -196,7 +196,7 @@ function processItem(itemName, count, result, deepMode, sourceItemName, sourceIt
             if (!result[itemName].for[sourceItemName]) {
                 result[itemName].for[sourceItemName] = 0;
             }
-            result[itemName].for[sourceItemName] += sourceItemCount;
+            result[itemName].for[sourceItemName] += count;
         }
         return;
     }
@@ -211,7 +211,6 @@ function processItem(itemName, count, result, deepMode, sourceItemName, sourceIt
             result,
             deepMode,
             itemName,
-            count,
             depth + 1
         );
     }
@@ -263,10 +262,11 @@ function renderResult(result){
         const totalCount = data.totalCount;
         const itemSpecifics = [];
         for (const forItemName in data.for) {
-            const resultAmount = recipes[forItemName]?.amount || 1;
             const resultData = recipes[forItemName]?.ingredients?.find(item => item.name === name);
-            const ingredientCount = data.for[forItemName] * resultData?.count;
-            const resultCount = data.for[forItemName];
+            const ingredientCount = data.for[forItemName];
+            const resultCount = data.for[forItemName]
+                                / (resultData?.count || 1)
+                                * (recipes[forItemName]?.amount || 1);
             itemSpecifics.push(`
                 <div class='result-item-specifics'>
                 ${formatStackString(ingredientCount)} шт. → ${forItemName} x${formatStackString(resultCount)}
@@ -294,7 +294,7 @@ function formatStackString(count) {
     let stackString = '';
     if (stackCount > 1 || 
         stackCount > 0 && leftover > 0) stackString += stackCount + '<small>x64</small>';
-    if (stackCount > 1 && leftover > 0) stackString += (stackString ? ' + ' : '') + leftover.toFixed(2).replace(/\.00$/, "");
+    if (stackCount > 0 && leftover > 0) stackString += (stackString ? ' + ' : '') + leftover.toFixed(2).replace(/\.00$/, "");
     if (stackString) stackString = ' (' + stackString + ')';
     return count.toFixed(2).replace(/\.00$/, "") + stackString;
 }
