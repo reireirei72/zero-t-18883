@@ -30,14 +30,16 @@ fetch(url)
             const recipesCount = row[6];
             if (recipesName && recipesAmount && recipesIngredient && recipesCount) {
                 if (!recipes[recipesName]) {
+                    const amount = +(recipesAmount.replace(',', '.'));
                     recipes[recipesName] = {
-                        amount: +recipesAmount,
+                        amount,
                         ingredients: [],
                     };
                 }
+                const count = +(recipesCount.replace(',', '.'));
                 recipes[recipesName].ingredients.push({
                     name: recipesIngredient,
-                    count: +recipesCount
+                    count
                 });
             }
         }
@@ -176,6 +178,7 @@ function processItem(itemName, count, result, deepMode, sourceItemName, depth = 
                 result[itemName].for[sourceItemName] = 0;
             }
             result[itemName].for[sourceItemName] += count;
+            console.log('На', sourceItemName, 'нужно', count, 'шт. ', itemName)
         }
         return;
     }
@@ -197,6 +200,7 @@ function processItem(itemName, count, result, deepMode, sourceItemName, depth = 
                 result[itemName].for[sourceItemName] = 0;
             }
             result[itemName].for[sourceItemName] += count;
+            console.log('На', sourceItemName, 'нужно', count, 'шт. ', itemName)
         }
         return;
     }
